@@ -5,6 +5,6 @@ docker:
   image_tag: 2023-04-06a
 
 network:
-  host: ap-editor.192.168.49.2.nip.io
+  host: 192.168.49.2.nip.io
 
 
