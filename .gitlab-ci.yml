@@ -1,0 +1,61 @@
+image: 
+  name: nexus.spaceapplications.com/repository/docker-eos-asb/asb-ci:nodejs-12-helm
+  entrypoint: [""]
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_REGISTRY_PREFIX: nexus.spaceapplications.com/
+
+services:
+  # FIXME [ISSDB-1547]: check with CDC team when docker:dind can be put back
+  - docker:18.09.8-dind
+
+stages:
+  - test
+  - release
+  - deploy
+
+.testing: &testing
+  variables:
+    ENVIRONMENT: testing
+    KUBECONFIG: ${TESTING_CLUSTER_KUBECONFIG}
+
+before_script:
+  - export DOCKER_CLIENT_TIMEOUT=120
+  - docker info
+  - docker --version
+  - docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" $DOCKER_REGISTRY_PREFIX
+
+lint webapp:
+  stage: test
+  script:
+    - node -v
+    - cd frontend
+    - yarn config set cache-folder .yarn
+    - yarn install
+    - yarn run lint --no-fix
+
+build and push:
+  stage: release
+  script:
+    - export VERSION=$(git describe)
+    - export $(grep REGISTRY= .env | xargs)
+    - echo "Pushing image version ${VERSION} in default registry (from .env) ${REGISTRY}"
+    - docker build -t ${REGISTRY}ap-editor:${VERSION} .
+    - docker push ${REGISTRY}ap-editor:${VERSION}
+    # latest images reference the last build
+    - docker tag ${REGISTRY}ap-editor:${VERSION} ${REGISTRY}ap-editor:latest
+    - docker push ${REGISTRY}ap-editor:latest
+  when: manual
+
+deploy on testing:
+  stage: deploy
+  <<: *testing
+  script:
+    - export VERSION=$(git describe)
+    - cd helm
+    - echo "${KUBECONFIG}" > kubeconfig && chmod go-rwx kubeconfig
+    - helm upgrade --kubeconfig kubeconfig --install ap-editor eo-application-package-editor/ --values values/testing/values.yaml --set-string docker.image_tag=${VERSION}
+  when: manual
+  

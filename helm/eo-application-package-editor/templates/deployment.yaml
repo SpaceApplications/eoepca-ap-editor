@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ap-editor-webapp
+  namespace: ap-editor
+  labels:
+    app: ap-editor-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ap-editor-webapp
+  template:
+    metadata:
+      labels:
+        app: ap-editor-webapp
+    spec:
+      containers:
+        - name: ap-editor-webapp
+          image: "{{ .Values.docker.registry_prefix }}{{ .Values.docker.image_name }}:{{ .Values.docker.image_tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: spaceapps-nexus
+      restartPolicy: Always
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,10 @@
+docker:
+  docker_config_json: notanactualconfig
+  registry_prefix: nexus.spaceapplications.com/repository/docker-eoepca/
+  image_name: ap-editor
+  image_tag: 2023-04-07a
+
+network:
+  host: eoepca-testing.spaceapplications.com
+
+nodeSelector: {}
