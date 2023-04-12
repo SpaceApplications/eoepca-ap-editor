@@ -39,7 +39,7 @@ lint webapp:
 build and push:
   stage: release
   script:
-    - export VERSION=$(git describe)
+    - export VERSION=$(git describe --always)
     - export $(grep REGISTRY= .env | xargs)
     - echo "Pushing image version ${VERSION} in default registry (from .env) ${REGISTRY}"
     - docker build -t ${REGISTRY}ap-editor:${VERSION} .
@@ -53,9 +53,8 @@ deploy on testing:
   stage: deploy
   <<: *testing
   script:
-    - export VERSION=$(git describe)
+    - export VERSION=$(git describe --always)
     - cd helm
     - echo "${KUBECONFIG}" > kubeconfig && chmod go-rwx kubeconfig
     - helm upgrade --kubeconfig kubeconfig --install ap-editor eo-application-package-editor/ --values values/testing/values.yaml --set-string docker.image_tag=${VERSION}
   when: manual
-  
