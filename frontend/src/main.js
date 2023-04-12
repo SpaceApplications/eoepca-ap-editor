@@ -1,9 +1,8 @@
 import Vue from "vue";
-import Vuex from "vuex";
 import App from "./App.vue";
-import { BootstrapVue, BIconThreeDots, BIcon } from "bootstrap-vue";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import {BootstrapVue, BootstrapVueIcons, BIconThreeDots, BIcon} from "bootstrap-vue";
+import {library} from "@fortawesome/fontawesome-svg-core";
+import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import Notifications from "vue-notification";
 import {store} from "./store/store";
 
@@ -13,7 +12,7 @@ import VueHighlightJS from "vue-highlight.js";
 import "highlight.js/styles/atom-one-light.css";
 
 Vue.use(VueHighlightJS, {
-  languages: { yaml }
+  languages: {yaml}
 });
 
 import {
@@ -33,6 +32,7 @@ import {
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faChevronUp,
   faClock,
   faCloud,
   faCloudUploadAlt,
@@ -108,6 +108,7 @@ library.add(
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faChevronUp,
   faClock,
   faCloud,
   faCloudUploadAlt,
@@ -171,6 +172,7 @@ Vue.config.devtools = true;
 
 Vue.use(BootstrapVue);
 Vue.use(Notifications);
+Vue.use(BootstrapVueIcons);
 
 Vue.component("fa-icon", FontAwesomeIcon);
 Vue.component("BIcon", BIcon);

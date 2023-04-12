@@ -6,15 +6,36 @@
     >
       <template v-slot:toolbar>
         <b-btn-toolbar class="float-right">
-          <input ref="file" type="file" accept=".cwl" @change="onFileUpload" hidden />
-          <b-btn variant="primary" @click="uploadFile()" class="mr-2">
-            <fa-icon class="mr-2" icon="upload"></fa-icon>
-            <span>Upload</span>
-          </b-btn>
-          <b-btn variant="success" @click="downloadWrapper()">
-            <fa-icon class="mr-2" icon="download"></fa-icon>
-            <span>Download</span>
-          </b-btn>
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Helper</h6>
+            <b-btn variant="primary" @click="validateCwl()">
+              <fa-icon class="mr-2" icon="sync-alt"></fa-icon>
+              <span>Validate</span>
+            </b-btn>
+          </div>
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Workspace</h6>
+            <b-btn variant="primary" @click="() => {console.log('Open from workspace action')}" class="mr-2" disabled>
+              <fa-icon class="mr-2" icon="folder-open"></fa-icon>
+              <span>Open</span>
+            </b-btn>
+            <b-btn variant="success" @click="() => {console.log('Save in workspace action')}" disabled>
+              <fa-icon class="mr-2" icon="save"></fa-icon>
+              <span>Save</span>
+            </b-btn>
+          </div>
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Transfer</h6>
+            <input ref="file" type="file" accept=".cwl" @change="onFileUpload" hidden/>
+            <b-btn variant="primary" @click="uploadFile()" class="mr-2">
+              <fa-icon class="mr-2" icon="upload"></fa-icon>
+              <span>Upload</span>
+            </b-btn>
+            <b-btn variant="success" @click="downloadWrapper()">
+              <fa-icon class="mr-2" icon="download"></fa-icon>
+              <span>Download</span>
+            </b-btn>
+          </div>
         </b-btn-toolbar>
       </template>
     </page-title>
@@ -29,10 +50,10 @@
           <b-tab title="Command Line Tool">
             <b-row class="m-2">
               <b-col align="center">
-              <b-btn class="add-btn" variant="primary" @click="pushNewClt" size="sm">
-                <fa-icon icon="plus"></fa-icon>
-                <span class="ml-2">Add Command Line Tool</span>
-              </b-btn>
+                <b-btn class="add-btn" variant="primary" @click="pushNewClt" size="sm">
+                  <fa-icon icon="plus"></fa-icon>
+                  <span class="ml-2">Add Command Line Tool</span>
+                </b-btn>
               </b-col>
             </b-row>
             <div class="clt-list accordion">
@@ -59,7 +80,15 @@
         </b-tabs>
       </b-col>
       <b-col lg="12" xl="5">
-        <b-card :header="cwlFileName" class="cwl-template">
+        <b-card class="cwl-template">
+          <template v-slot:header>
+            <b-row>
+              <b-col sm="1.0" style="display: flex; align-items: center">File Name:</b-col>
+              <b-col sm="6">
+                <b-form-input :value="cwlFileName" type="text" @input="handleFileNameChange" @keydown.space.prevent/>
+              </b-col>
+            </b-row>
+          </template>
           <ApplicationPackageCwlTemplate :cwlObject="cleanedCwl" ref="processWrapper"/>
         </b-card>
       </b-col>
@@ -71,13 +100,13 @@
 import ApplicationPackageCwlTemplate from "../components/Template/ApplicationPackageCwlTemplate";
 import PageTitle from "../components/Shared/PageTitle";
 import "vue-slider-component/theme/antd.css";
-import { saveAs } from "file-saver";
+import {saveAs} from "file-saver";
 import yaml from "js-yaml";
 import {cwlValidator} from "../cwlObjectValidator";
 import MetadataEditor from "../components/metadata/MetadataEditor";
 import WorkflowEditor from "../components/Workflow/WorkflowEditor";
 import CommandLineToolEditor from "../components/CommandLinetool/CommandLineToolEditor";
-import {parseCwlObject, removeEmpty} from "../utils";
+import {parseCwlObject, removeEmpty, showNotification, validateCwlConsistency} from "../utils";
 import {mapGetters} from "vuex";
 import {
   ADD_COMMAND_LINE_TOOL,
@@ -96,32 +125,22 @@ export default {
       idx: undefined,
     };
   },
-  created() {},
   methods: {
     removeClt(clt) {
-      this.$store.dispatch(REMOVE_COMMAND_LINE_TOOL, clt)
+      this.$store.dispatch(REMOVE_COMMAND_LINE_TOOL, clt);
     },
     pushNewClt() {
-      this.$store.dispatch(ADD_COMMAND_LINE_TOOL)
+      this.$store.dispatch(ADD_COMMAND_LINE_TOOL);
     },
     uploadFile() {
-      this.$refs.file.click()
-    },
-    showNotification(title, type, text='') {
-      this.$notify({
-        group: "global",
-        type: type,
-        title: title,
-        duration: 3000,
-        text: text
-      });
+      this.$refs.file.click();
     },
     yamlToObject(yamlContent) {
       let yamlObj = undefined;
       try {
         yamlObj = yaml.load(yamlContent);
       } catch (error) {
-        this.showNotification('YAML Validator', 'error', error.message);
+        showNotification('YAML Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
         return undefined;
       }
       return yamlObj;
@@ -133,15 +152,18 @@ export default {
         reader.onload = () => {
           const yamlObject = this.yamlToObject(reader.result);
           cwlValidator.validate(yamlObject, {strict: true}).then((validatedCwlObject) => {
-            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject))
-            this.$store.dispatch(CHANGE_FILE_NAME, file.name)
+            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject));
+            this.$store.dispatch(CHANGE_FILE_NAME, file.name);
+            this.validateCwl();
           }).catch((error) => {
-            this.showNotification('CWL Validator', 'error', error);
-            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject))
-            this.$store.dispatch(CHANGE_FILE_NAME, file.name)
+            showNotification('CWL Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
+            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject));
+            this.$store.dispatch(CHANGE_FILE_NAME, file.name);
+            this.validateCwl();
           });
         };
-        reader.onerror = () => this.showNotification('File Error', 'error', reader.error);
+        reader.onerror = () =>
+          showNotification('File Error', {type: 'error', text: reader.error, duration: 5000, group: 'global'});
         reader.readAsText(file);
       }
       this.$refs.file.value = ''; // Clear the file to allow change detection when same file is re-uploaded
@@ -149,10 +171,25 @@ export default {
     downloadWrapper() {
       let data = this.$refs.processWrapper.$el.innerText;
       let mimetype = "text/yaml";
-      let blob = new Blob([data], { type: mimetype + ";charset=utf-8" });
+      let blob = new Blob([data], {type: mimetype + ";charset=utf-8"});
       saveAs(blob, this.cwlFileName);
       return false;
     },
+    handleFileNameChange(value) {
+      this.$store.dispatch(CHANGE_FILE_NAME, value);
+    },
+    validateCwl() {
+      const issues = validateCwlConsistency(this.cwlObject);
+      if (issues.length) {
+        showNotification(
+          'CWL Validation issues', {group: 'global', type: 'error', text: issues, duration: -1}
+        );
+      } else {
+        showNotification(
+          'CWL file is valid', {group: 'info', type: 'success'}
+        );
+      }
+    }
   },
   computed: {
     cleanedCwl() {
@@ -176,8 +213,8 @@ export default {
   width: fit-content;
 }
 
-.editor-card .card-body{
-  max-height: 75vh;
+.editor-card .card-body {
+  max-height: 79vh;
   overflow-y: auto;
 }
 
@@ -204,12 +241,20 @@ export default {
   overflow-y: auto;
 }
 
-.clt-list .card-body{
+.clt-list .card-body {
   padding: 0px;
 }
 
 .clt-list .card-header {
   padding: 0px;
+}
+
+.cwl-template .card-header {
+  padding: 0.35rem 2rem !important;
+}
+
+.card-header {
+  background-color: #ebebeb !important;
 }
 
 .cwl-template .card-body {

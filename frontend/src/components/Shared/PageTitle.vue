@@ -45,7 +45,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import "@/assets/scss/default/application-package-editor.scss";
+@import "../../assets/scss/default/application-package-editor.scss";
 
 .page-title {
   padding-bottom: 0.7rem;

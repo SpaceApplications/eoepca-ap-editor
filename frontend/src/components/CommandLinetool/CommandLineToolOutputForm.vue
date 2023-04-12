@@ -2,15 +2,15 @@
   <b-form>
     <div class="form-content">
       <b-form-group
-          label="Identifier:"
-          description="The unique identifier for this parameter object."
+        label="Identifier:"
+        description="The unique identifier for this parameter object."
       >
         <b-form-input v-model="output.id" type="text"/>
-        <b-form-invalid-feedback :state="idValidator">This field is required.</b-form-invalid-feedback>
+        <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
       <b-form-group
-          label="Type:"
-          description="Specify valid types of data that may be assigned to this parameter."
+        label="Type:"
+        description="Specify valid types of data that may be assigned to this parameter."
       >
         <b-row align-v="center">
           <b-col sm="9">
@@ -22,45 +22,44 @@
         </b-row>
       </b-form-group>
       <b-form-group
-          label="Format:"
-          description="Note: you can add a list of format using ',' as a separator."
+        label="Format:"
+        description="Note: you can add a list of format using ',' as a separator."
+        v-if="output.type?.includes('File')"
       >
-        <b-form-input
-            :value="formatValue" @input="handleFormatChange" type="text" :disabled="!output.type?.includes('File')"
-        />
+        <b-form-input :value="formatValue" @input="handleFormatChange" type="text"/>
       </b-form-group>
-      <b-form-checkbox v-model="output.streamable" class="m-2" :disabled="!output.type?.includes('File')">
+      <b-form-checkbox v-model="output.streamable" class="m-2" v-if="output.type?.includes('File')">
         Streamable
       </b-form-checkbox>
       <b-form-group
-          label="Output Binding:"
-          description="Describes how to handle the outputs of a process."
+        label="Output Binding:"
+        description="Describes how to handle the outputs of a process."
       >
         <div class="composite-output">
           <b-form-group
-              label-cols-sm="2.5"
-              label="Glob:"
+            label-cols-sm="2.5"
+            label="Glob:"
           >
-            <b-form-input v-model="output.outputBinding.glob" type="text"/>
+            <b-form-input :v-model="output.outputBinding?.glob" type="text"/>
           </b-form-group>
           <b-form-group
-              label-cols-sm="2.5"
-              label="Output Eval:"
+            label-cols-sm="2.5"
+            label="Output Eval:"
           >
-            <b-form-input v-model="output.outputBinding.outputEval" type="text"/>
+            <b-form-input :v-model="output.outputBinding?.outputEval" type="text"/>
           </b-form-group>
-          <b-form-checkbox v-model="output.outputBinding.loadContents">Load Contents</b-form-checkbox>
+          <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
         </div>
       </b-form-group>
       <b-form-group
-          label="Label:"
-          description="A short, human-readable label of this object."
+        label="Label:"
+        description="A short, human-readable label of this object."
       >
         <b-form-input v-model="output.label" type="text"/>
       </b-form-group>
       <b-form-group
-          label="Doc:"
-          description="A documentation string for this type."
+        label="Description:"
+        description="A documentation string for this type."
       >
         <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
       </b-form-group>
@@ -83,28 +82,49 @@ import Multiselect from "vue-multiselect";
 import {cwlTypes} from "../../cwlObjectValidator";
 
 export default {
-  name: "WorkflowOutputForm",
+  name: "CommandLineToolOutputForm",
   components: {Multiselect},
   props: {
+    inOutIds: Array,
     outputProp: Object,
+  },
+  data() {
+    return {
+      output: {
+        id: undefined,
+        label: undefined,
+        doc: undefined,
+        streamable: undefined,
+        format: undefined,
+        ...this.outputProp,
+        type: this.outputProp?.type?.replace('?', ''),
+        outputBinding: {
+          glob: undefined,
+          loadContents: undefined,
+          outputEval: undefined,
+          ...this.outputProp?.outputBinding
+        }
+      },
+      optionalType: this.outputProp?.type?.endsWith('?') || false,
+    };
   },
   methods: {
     handleSubmit() {
-      const inputData = {
+      const outputData = {
         ...this.output,
         type: this.output.type ? `${this.output.type}${this.optionalType ? '?' : ''}` : undefined,
       };
       if (this.outputProp) {
-        this.$emit('onEdit', inputData);
+        this.$emit('onEdit', outputData);
       } else {
-        this.$emit('onAdd', inputData);
+        this.$emit('onAdd', outputData);
       }
     },
     handleCancel() {
       this.$emit('onClose');
     },
-    handleFormatChange(newValue){
-      const trimmedValue = newValue.replace(/\s/g, '')
+    handleFormatChange(newValue) {
+      const trimmedValue = newValue.replace(/\s/g, '');
       if (trimmedValue.split(',').filter(e => e).length > 1) {
         this.$set(this.output, 'format', trimmedValue.split(','));
       } else {
@@ -112,40 +132,25 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      output: this.outputProp ? {...this.outputProp, type: this.outputProp.type?.replace('?', '')} : {
-        id: undefined,
-        label: undefined,
-        doc: undefined,
-        streamable: undefined,
-        outputBinding: {
-          glob: undefined,
-          loadContents: undefined,
-          outputEval: undefined,
-        },
-        format: undefined,
-        type: undefined,
-      },
-      optionalType: this.outputProp?.type?.endsWith('?') || false,
-    }
-  },
   computed: {
     dataTypes() {
-      return [
-        ...cwlTypes,
-        ...cwlTypes.filter(type => type !== 'Directory' && type !== 'File').map(type => `${type}[]`),
-      ];
+      return cwlTypes;
     },
     idValidator() {
-      return this.output.id !== undefined && this.output.id.length > 0;
+      return this.output?.id !== undefined && this.output?.id.length > 0
+        && this.inOutIds.filter(id => id === this.output?.id && id !== this.outputProp?.id).length === 0;
+    },
+    idValidatorFeedback() {
+      if (this.output?.id === undefined || this.output?.id.length === 0)
+        return 'This field is required.';
+      return 'This field must be unique.';
     },
     formatValue() {
       if (Array.isArray(this.output.format)) return this.output.format.join(', ');
       return this.output.format;
     }
   }
-}
+};
 </script>
 
 <style scoped>

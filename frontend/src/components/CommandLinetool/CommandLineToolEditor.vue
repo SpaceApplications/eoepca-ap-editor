@@ -1,27 +1,29 @@
 <template>
   <div style="padding: 14px">
     <b-modal
-        @hide="closeModalForm"
-        ref="modal-form"
-        :id="modalIdentifier"
-        :title="modalIdentifier"
-        align-h="end"
-        hide-footer
-        size="lg"
+      @hide="closeModalForm"
+      ref="modal-form"
+      :id="modalIdentifier"
+      :title="modalIdentifier"
+      align-h="end"
+      hide-footer
+      size="lg"
     >
       <command-line-tool-input-form
-          :input-prop="selectedElement"
-          v-if="modalIdentifier==='CommandLineTool Input'"
-          @onEdit="onEditCommandLineToolInput"
-          @onAdd="onAddCommandLineToolInput"
-          @onClose="closeModalForm"
+        :input-prop="selectedElement"
+        :in-out-ids="inOutIds"
+        v-if="modalIdentifier==='CommandLineTool Input'"
+        @onEdit="onEditCommandLineToolInput"
+        @onAdd="onAddCommandLineToolInput"
+        @onClose="closeModalForm"
       />
       <command-line-tool-output-form
-          :output-prop="selectedElement"
-          @onEdit="onEditCommandLineToolOutput"
-          @onAdd="onAddCommandLineToolOutput"
-          @onClose="closeModalForm"
-          v-if="modalIdentifier==='CommandLineTool Output'"
+        :output-prop="selectedElement"
+        :in-out-ids="inOutIds"
+        @onEdit="onEditCommandLineToolOutput"
+        @onAdd="onAddCommandLineToolOutput"
+        @onClose="closeModalForm"
+        v-if="modalIdentifier==='CommandLineTool Output'"
       />
       <requirement-form
         :requirement-prop="selectedElement"
@@ -51,8 +53,8 @@
       </b-col>
       <b-col sm="3">
         <b-form-input type="text" v-model="commandLineTool.id" @keydown.space.prevent/>
-        <b-form-invalid-feedback :state="commandLineTool.id !== undefined && commandLineTool.id.length > 0">
-          This field is required.
+        <b-form-invalid-feedback :state="idValidator">
+          {{ this.idValidatorFeedback }}
         </b-form-invalid-feedback>
       </b-col>
       <b-col sm="3">
@@ -68,7 +70,27 @@
           <empty class="m-0 p-0" v-if="commandLineTool.baseCommand?.length === 0" text="No Commands" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
             <b-row class="mt-2" v-for="(cmd, index) in commandLineTool.baseCommand" :key="cmd._key">
-              <b-col sm="11">
+              <b-col sm="1">
+                <b-button-group vertical>
+                  <b-btn
+                    style="height: 17px; display: flex; align-items: center"
+                    @click="changePosition('baseCommand', 'Up', index)" size="sm"
+                    variant="light"
+                    :disabled="index===0"
+                  >
+                    <fa-icon icon="chevron-up"/>
+                  </b-btn>
+                  <b-btn
+                    style="height: 17px; display: flex; align-items: center"
+                    @click="changePosition('baseCommand', 'Down', index)" size="sm"
+                    variant="light"
+                    :disabled="index===commandLineTool.baseCommand.length-1"
+                  >
+                    <fa-icon icon="chevron-down"/>
+                  </b-btn>
+                </b-button-group>
+              </b-col>
+              <b-col sm="10">
                 <b-form-input type="text" :value="cmd" @input="handleCmdChange($event, index)" @keydown.space.prevent/>
               </b-col>
               <b-btn class="float-right" variant="danger" @click="removeCmd(index)" size="sm">
@@ -89,8 +111,30 @@
           <empty class="m-0 p-0" v-if="commandLineTool.arguments?.length === 0" text="No Arguments" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
             <b-row class="mt-2" v-for="(argument, index) in commandLineTool.arguments" :key="argument._key">
-              <b-col sm="11">
-                <b-form-input type="text" :value="argument" @input="handleArgumentChange($event, index)" @keydown.space.prevent/>
+              <b-col sm="1">
+                <b-button-group vertical>
+                  <b-btn
+                    style="height: 17px; display: flex; align-items: center"
+                    @click="changePosition('arguments', 'Up', index)" size="sm"
+                    variant="light"
+                    :disabled="index===0"
+                  >
+                    <fa-icon icon="chevron-up"/>
+                  </b-btn>
+                  <b-btn
+                    style="height: 17px; display: flex; align-items: center"
+                    @click="changePosition('arguments', 'Down', index)" size="sm"
+                    variant="light"
+                    :disabled="index===commandLineTool.arguments.length-1"
+                  >
+                    <fa-icon icon="chevron-down"/>
+                  </b-btn>
+                </b-button-group>
+              </b-col>
+              <b-col sm="10">
+                <b-form-input
+                  type="text" :value="argument" @input="handleArgumentChange($event, index)" @keydown.space.prevent
+                />
               </b-col>
               <b-btn class="float-right" variant="danger" @click="removeArgument(index)" size="sm">
                 <fa-icon icon="times"/>
@@ -112,8 +156,8 @@
         <b-table :fields="inputTableFields" :items="commandLineTool.inputs" small show-empty>
           <template #cell(action)="data">
             <b-btn
-                variant="primary" @click="edit(data.item, data.index, 'CommandLineTool Input')"
-                class="mr-2" size="sm"
+              variant="primary" @click="edit(data.item, data.index, 'CommandLineTool Input')"
+              class="mr-2" size="sm"
             >
               <fa-icon icon="edit"></fa-icon>
             </b-btn>
@@ -127,8 +171,8 @@
         </b-table>
         <div class="col" align="right">
           <b-btn
-              class="add-btn" variant="outline-success"
-              @click="showModalForm('CommandLineTool Input')" size="sm"
+            class="add-btn" variant="outline-success"
+            @click="showModalForm('CommandLineTool Input')" size="sm"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add input</span>
@@ -142,8 +186,8 @@
         <b-table :fields="outputTableFields" :items="commandLineTool.outputs" small show-empty>
           <template #cell(action)="data">
             <b-btn
-                variant="primary" @click="edit(data.item, data.index, 'CommandLineTool Output')"
-                class="mr-2" size="sm"
+              variant="primary" @click="edit(data.item, data.index, 'CommandLineTool Output')"
+              class="mr-2" size="sm"
             >
               <fa-icon icon="edit"></fa-icon>
             </b-btn>
@@ -157,10 +201,10 @@
         </b-table>
         <div class="col" align="right">
           <b-btn
-              class="add-btn"
-              variant="outline-success"
-              @click="showModalForm('CommandLineTool Output')"
-              size="sm"
+            class="add-btn"
+            variant="outline-success"
+            @click="showModalForm('CommandLineTool Output')"
+            size="sm"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add output</span>
@@ -169,10 +213,10 @@
       </b-collapse>
     </div>
     <requirement-editor
-        :requirements-prop="commandLineTool.requirements"
-        :pos="pos"
-        modal-title-prop="CommandLineTool Requirements"
-        :collapsed-prop="false"
+      :requirements-prop="commandLineTool.requirements"
+      :pos="pos"
+      modal-title-prop="CommandLineTool Requirements"
+      :collapsed-prop="false"
     />
   </div>
 </template>
@@ -188,6 +232,7 @@ import {
   EDIT_COMMAND_LINE_TOOL,
   REMOVE_COMMAND_LINE_TOOL_ELEMENT
 } from "../../store/action-types";
+import {mapGetters} from "vuex";
 
 export default {
   name: 'CommandLineToolEditor',
@@ -196,21 +241,26 @@ export default {
     commandLineToolProp: Object,
     pos: Number,
   },
+  watch: {
+    commandLineToolProp(newValue, oldValue) {
+      this.commandLineTool = newValue;
+    }
+  },
   data() {
     return {
       inputTableFields: [
-        {key: 'id', label: 'Identifier', thStyle: { width: "20%" }},
-        {key: 'type', label: 'Type', thStyle: { width: "15%" }},
-        {key: 'default', label: 'Default', thStyle: { width: "25%" }},
-        {key: 'doc', label: 'Description', thStyle: { width: "30%" }},
-        {key: 'action', label: '', thStyle: { width: "10%" }},
+        {key: 'id', label: 'Identifier', thStyle: {width: "20%"}},
+        {key: 'type', label: 'Type', thStyle: {width: "15%"}},
+        {key: 'default', label: 'Default', thStyle: {width: "25%"}},
+        {key: 'doc', label: 'Description', thStyle: {width: "30%"}},
+        {key: 'action', label: '', thStyle: {width: "10%"}},
       ],
       outputTableFields: [
-        {key: 'id', label: 'Identifier', thStyle: { width: "20%" }},
-        {key: 'type', label: 'Type', thStyle: { width: "15%" }},
-        {key: 'label', label: 'Label', thStyle: { width: "25%" }},
-        {key: 'doc', label: 'Description', thStyle: { width: "30%" }},
-        {key: 'action', label: '', thStyle: { width: "10%" }},
+        {key: 'id', label: 'Identifier', thStyle: {width: "20%"}},
+        {key: 'type', label: 'Type', thStyle: {width: "15%"}},
+        {key: 'label', label: 'Label', thStyle: {width: "25%"}},
+        {key: 'doc', label: 'Description', thStyle: {width: "30%"}},
+        {key: 'action', label: '', thStyle: {width: "10%"}},
       ],
       modalIdentifier: 'CommandLineTool Input',
       selectedElement: undefined,
@@ -226,37 +276,37 @@ export default {
         outputs: [],
         requirements: {},
       }
-    }
+    };
   },
   methods: {
     onEditCommandLineToolInput(data) {
       this.$store.dispatch(EDIT_COMMAND_LINE_TOOL, {
         instance: this.commandLineTool, property: 'inputs',
         index: this.selectedElementIndex, updatedData: data
-      })
+      });
       this.closeModalForm();
     },
     onAddCommandLineToolInput(data) {
       this.$store.dispatch(ADD_COMMAND_LINE_TOOL_ELEMENT, {
         instance: this.commandLineTool, property: 'inputs', data
-      })
+      });
       this.closeModalForm();
     },
     onEditCommandLineToolOutput(data) {
       this.$store.dispatch(EDIT_COMMAND_LINE_TOOL, {
         instance: this.commandLineTool, property: 'outputs',
         index: this.selectedElementIndex, updatedData: data
-      })
+      });
       this.closeModalForm();
     },
     onAddCommandLineToolOutput(data) {
       this.$store.dispatch(ADD_COMMAND_LINE_TOOL_ELEMENT, {
         instance: this.commandLineTool, property: 'outputs', data
-      })
+      });
       this.closeModalForm();
     },
     onEditCommandLineToolRequirement(data) {
-      this.$delete(this.commandLineTool.requirements, this.selectedElementIndex)
+      this.$delete(this.commandLineTool.requirements, this.selectedElementIndex);
       this.commandLineTool.requirements = {...this.commandLineTool.requirements, ...data};
       this.closeModalForm();
     },
@@ -279,28 +329,59 @@ export default {
       this.showModalForm(modalIdentifier);
     },
     removeElement(property, index) {
-      this.$store.dispatch(REMOVE_COMMAND_LINE_TOOL_ELEMENT, {instance: this.commandLineTool, property, index})
+      this.$store.dispatch(REMOVE_COMMAND_LINE_TOOL_ELEMENT, {instance: this.commandLineTool, property, index});
     },
     addBaseCommand() {
       this.commandLineTool.baseCommand.push('');
     },
     handleCmdChange(value, index) {
-      this.$set(this.commandLineTool.baseCommand, index, value.replace(' ', ''))
+      this.$set(this.commandLineTool.baseCommand, index, value.replace(' ', ''));
     },
     removeCmd(index) {
-      this.$delete(this.commandLineTool.baseCommand, index)
+      this.$delete(this.commandLineTool.baseCommand, index);
     },
     addArgument() {
       this.commandLineTool.arguments.push('');
     },
     handleArgumentChange(value, index) {
-      this.$set(this.commandLineTool.arguments, index, value.replace(' ', ''))
+      this.$set(this.commandLineTool.arguments, index, value.replace(' ', ''));
     },
     removeArgument(index) {
-      this.$delete(this.commandLineTool.arguments, index)
+      this.$delete(this.commandLineTool.arguments, index);
+    },
+    changePosition(property, direction, index) {
+      let idxTarget;
+      if (direction === 'Up') {
+        idxTarget = index - 1;
+      } else {
+        idxTarget = index + 1;
+      }
+      const tmp = this.commandLineTool[property][index];
+      this.$set(this.commandLineTool[property], index, this.commandLineTool[property][idxTarget]);
+      this.$set(this.commandLineTool[property], idxTarget, tmp);
     }
   },
-}
+  computed: {
+    ...mapGetters({
+      cwlObject: 'cwlObject'
+    }),
+    idValidator() {
+      return this.commandLineTool?.id !== undefined && this.commandLineTool?.id.length > 0
+        && this.cwlObject.$graph.filter(p => p.id === this.commandLineTool?.id).length <= 1;
+    },
+    idValidatorFeedback() {
+      if (this.commandLineTool?.id === undefined || this.commandLineTool?.id.length === 0)
+        return 'This field is required.';
+      return 'This field must be unique.';
+    },
+    inOutIds() {
+      return [
+        ...this.commandLineTool.inputs.map(input => input.id),
+        ...this.commandLineTool.outputs.map(output => output.id)
+      ];
+    }
+  }
+};
 </script>
 
 <style scoped>

@@ -62,7 +62,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import "@/assets/scss/default/application-package-editor.scss";
+@import "../../assets/scss/default/application-package-editor.scss";
 
 .empty-icon {
   color: gray("300");

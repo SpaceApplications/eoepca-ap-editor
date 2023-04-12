@@ -18,7 +18,7 @@ export default {
   },
   computed: {
     cwlContent() {
-      return yaml.dump(this.cwlObject, {lineWidth: -1})
+      return yaml.dump(this.cwlObject, {lineWidth: -1});
     }
   }
 };

@@ -16,10 +16,11 @@
     </b-row>
     <b-row class="mt-2">
       <b-col sm="2">
-        <b-form-input type="text" v-model="cwlObject.cwlVersion" disabled/>
+        <b-form-input type="text" v-model="cwlObject.cwlVersion" @keydown.space.prevent/>
+        <b-form-invalid-feedback :state="versionValidator()">This field is required</b-form-invalid-feedback>
       </b-col>
       <b-col sm="2">
-        <b-form-input type="date" v-model="cwlObject[`${nsPrefix}:dateCreated`]" />
+        <b-form-input type="date" v-model="cwlObject[`${nsPrefix}:dateCreated`]"/>
       </b-col>
       <b-col sm="2">
         <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:softwareVersion`]" @keydown.space.prevent/>
@@ -29,25 +30,42 @@
       </b-col>
     </b-row>
     <b-row class="mb-1 mt-3">
-      <b-col sm="4">
-        <h6>Code Repository</h6>
+      <b-col sm="6">
+        <h6>Code Repository (URL)</h6>
       </b-col>
-      <b-col sm="4">
-        <h6>License</h6>
-      </b-col>
-      <b-col sm="4">
-        <h6>Release Notes</h6>
+      <b-col sm="6">
+        <h6>License (URL)</h6>
       </b-col>
     </b-row>
     <b-row class="mt-2">
-      <b-col sm="4">
-        <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:codeRepository`]" @keydown.space.prevent/>
+      <b-col sm="6">
+        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:codeRepository`]" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="4">
-        <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:license`]"/>
+      <b-col sm="6">
+        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:license`]"/>
       </b-col>
-      <b-col sm="4">
-        <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:releaseNotes`]"/>
+    </b-row>
+    <b-row class="mb-1 mt-3">
+      <b-col sm="6">
+        <h6>Release Notes (URL)</h6>
+      </b-col>
+      <b-col sm="6">
+        <h6>Logo (URL)</h6>
+      </b-col>
+    </b-row>
+    <b-row class="mt-2">
+      <b-col sm="6">
+        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:releaseNotes`]"/>
+      </b-col>
+      <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 5 : 6">
+        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:logo`]"/>
+      </b-col>
+      <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 1 : 0">
+        <img
+          v-if="cwlObject[`${nsPrefix}:logo`]"
+          :src="cwlObject[`${nsPrefix}:logo`]"
+          alt="Logo Image" style="width: 60px"
+        />
       </b-col>
     </b-row>
     <div class="card-section">
@@ -57,24 +75,24 @@
         <b-row class="mt-2" v-for="(author, index) in authors" :key="author._key">
           <b-col sm="3">
             <b-form-input
-                placeholder="Author name..."
-                type="text"
-                v-model="authors[index][`${nsPrefix}:name`]"
+              placeholder="Author name..."
+              type="text"
+              v-model="authors[index][`${nsPrefix}:name`]"
             />
           </b-col>
           <b-col sm="4">
             <b-form-input
-                placeholder="Author email..."
-                type="email"
-                v-model="authors[index][`${nsPrefix}:email`]"
-                @keydown.space.prevent
+              placeholder="Author email..."
+              type="email"
+              v-model="authors[index][`${nsPrefix}:email`]"
+              @keydown.space.prevent
             />
           </b-col>
           <b-col sm="4">
             <b-form-input
-                placeholder="Author affiliation..."
-                type="text"
-                v-model="authors[index][`${nsPrefix}:affiliation`]"
+              placeholder="Author affiliation..."
+              type="text"
+              v-model="authors[index][`${nsPrefix}:affiliation`]"
             />
           </b-col>
           <b-col align="right">
@@ -86,10 +104,10 @@
         <b-row class="mt-4">
           <b-col align="right">
             <b-btn
-                class="add-btn"
-                variant="outline-success"
-                @click="addAuthor()"
-                size="sm"
+              class="add-btn"
+              variant="outline-success"
+              @click="addAuthor()"
+              size="sm"
             >
               <fa-icon icon="plus"></fa-icon>
               <span class="ml-2">Add Author</span>
@@ -105,24 +123,24 @@
         <b-row class="mt-2" v-for="(contributor, index) in contributors" :key="contributor._key">
           <b-col sm="3">
             <b-form-input
-                placeholder="Contributor name..."
-                type="text"
-                v-model="contributors[index][`${nsPrefix}:name`]"
+              placeholder="Contributor name..."
+              type="text"
+              v-model="contributors[index][`${nsPrefix}:name`]"
             />
           </b-col>
           <b-col sm="4">
             <b-form-input
-                placeholder="Contributor email..."
-                type="email"
-                v-model="contributors[index][`${nsPrefix}:email`]"
-                @keydown.space.prevent
+              placeholder="Contributor email..."
+              type="email"
+              v-model="contributors[index][`${nsPrefix}:email`]"
+              @keydown.space.prevent
             />
           </b-col>
           <b-col sm="4">
             <b-form-input
-                placeholder="Contributor affiliation..."
-                type="text"
-                v-model="contributors[index][`${nsPrefix}:affiliation`]"
+              placeholder="Contributor affiliation..."
+              type="text"
+              v-model="contributors[index][`${nsPrefix}:affiliation`]"
             />
           </b-col>
           <b-col align="right">
@@ -134,10 +152,10 @@
         <b-row class="mt-4">
           <b-col align="right">
             <b-btn
-                class="add-btn"
-                variant="outline-success"
-                @click="addContributor()"
-                size="sm"
+              class="add-btn"
+              variant="outline-success"
+              @click="addContributor()"
+              size="sm"
             >
               <fa-icon icon="plus"></fa-icon>
               <span class="ml-2">Add Contributor</span>
@@ -153,10 +171,10 @@
         <b-row class="mt-2" v-for="(schema, index) in schemas" :key="schema._key">
           <b-col sm="11">
             <b-form-input
-                placeholder="Enter your schema url here..."
-                type="text"
-                v-model="schemas[index]"
-                @keydown.space.prevent
+              placeholder="Enter your schema url here..."
+              type="text"
+              v-model="schemas[index]"
+              @keydown.space.prevent
             />
           </b-col>
           <b-col align="right">
@@ -168,10 +186,10 @@
         <b-row class="mt-4">
           <b-col align="right">
             <b-btn
-                class="add-btn"
-                variant="outline-success"
-                @click="addSchema()"
-                size="sm"
+              class="add-btn"
+              variant="outline-success"
+              @click="addSchema()"
+              size="sm"
             >
               <fa-icon icon="plus"></fa-icon>
               <span class="ml-2">Add schema</span>
@@ -187,27 +205,27 @@
         <b-row class="mt-2" v-for="nsPair in Object.entries(cwlObject.$namespaces)" :key="nsPair._key">
           <b-col sm="5">
             <b-form-input
-                placeholder="Label..."
-                type="text"
-                @blur="handleLabelChange($event, nsPair)"
-                :value="nsPair[0]"
-                @keydown.space.prevent
+              placeholder="Label..."
+              type="text"
+              @blur="handleLabelChange($event, nsPair)"
+              :value="nsPair[0]"
+              @keydown.space.prevent
             />
           </b-col>
           <b-col sm="6">
             <b-form-input
-                placeholder="Value..."
-                type="text"
-                :value="nsPair[1]"
-                @input="handleValueChange($event, nsPair)"
-                :disabled="nsPair[0] === 's'"
-                @keydown.space.prevent
+              placeholder="Value..."
+              type="text"
+              :value="nsPair[1]"
+              @input="handleValueChange($event, nsPair)"
+              :disabled="nsPair[0] === 's'"
+              @keydown.space.prevent
             />
           </b-col>
           <b-col align="right">
             <b-btn
-                class="float-right" variant="danger" @click="removeNamespace(nsPair[0])"
-                :disabled="nsPair[0] === 's'" size="sm "
+              class="float-right" variant="danger" @click="removeNamespace(nsPair[0])"
+              :disabled="nsPair[0] === 's'" size="sm "
             >
               <fa-icon icon="times"/>
             </b-btn>
@@ -216,10 +234,10 @@
         <b-row class="mt-4">
           <b-col align="right">
             <b-btn
-                class="add-btn"
-                variant="outline-success"
-                @click="addNamespace()"
-                size="sm"
+              class="add-btn"
+              variant="outline-success"
+              @click="addNamespace()"
+              size="sm"
             >
               <fa-icon icon="plus"></fa-icon>
               <span class="ml-2">Add namespace</span>
@@ -259,23 +277,26 @@ export default {
       this.authors.push({...this.person});
     },
     removeNamespace(nsPrefix) {
-      this.$store.dispatch(REMOVE_NAMESPACE, nsPrefix)
+      this.$store.dispatch(REMOVE_NAMESPACE, nsPrefix);
     },
     addNamespace() {
       this.$store.dispatch(ADD_NAMESPACE);
     },
     handleValueChange(nsValue, nsPairDef) {
       this.$store.dispatch(
-          EDIT_NAMESPACE,
-          {newName: nsPairDef[0], oldName: nsPairDef[0], newValue: nsValue, oldValue: nsPairDef[1]}
+        EDIT_NAMESPACE,
+        {newName: nsPairDef[0], oldName: nsPairDef[0], newValue: nsValue, oldValue: nsPairDef[1]}
       );
     },
     handleLabelChange(event, nsPairDef) {
       this.$store.dispatch(
-          EDIT_NAMESPACE,
-          {newName: event.target.value, oldName: nsPairDef[0], newValue: nsPairDef[1], oldValue: nsPairDef[1]}
+        EDIT_NAMESPACE,
+        {newName: event.target.value, oldName: nsPairDef[0], newValue: nsPairDef[1], oldValue: nsPairDef[1]}
       );
-    }
+    },
+    versionValidator() {
+      return this.cwlObject.cwlVersion !== undefined && this.cwlObject.cwlVersion.length > 0;
+    },
   },
   computed: {
     person() {
@@ -283,7 +304,7 @@ export default {
         [`${this.nsPrefix}:name`]: undefined,
         [`${this.nsPrefix}:email`]: undefined,
         [`${this.nsPrefix}:affiliation`]: undefined,
-      }
+      };
     },
     ...mapGetters({
       cwlObject: 'cwlObject',
@@ -293,7 +314,7 @@ export default {
       schemas: 'schemas',
     })
   }
-}
+};
 </script>
 
 <style scoped>

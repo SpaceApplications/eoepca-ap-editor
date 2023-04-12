@@ -2,21 +2,21 @@
   <b-form @submit.stop.prevent>
     <div class="form-content">
       <b-form-group
-          label="Identifier:"
-          description="The unique identifier for this parameter object."
+        label="Identifier:"
+        description="The unique identifier for this parameter object."
       >
         <b-form-input v-model="input.id" type="text"/>
-        <b-form-invalid-feedback :state="idValidator">This field is required.</b-form-invalid-feedback>
+        <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
       <b-form-group
-          label="Type:"
-          description="Specify valid types of data that may be assigned to this parameter."
+        label="Type:"
+        description="Specify valid types of data that may be assigned to this parameter."
       >
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect
-                v-model="input.type"
-                :options="dataTypes"
+              v-model="input.type"
+              :options="dataTypes"
             />
           </b-col>
           <b-col sm="2">
@@ -25,65 +25,65 @@
         </b-row>
       </b-form-group>
       <b-form-group
-          label="Default:"
-          description="The default value to use for this parameter if the parameter is missing from the input object."
+        label="Default:"
+        description="The default value to use for this parameter if the parameter is missing from the input object."
       >
         <b-form-input v-model="input.default" type="text"/>
       </b-form-group>
-      <b-form-checkbox v-model="input.streamable" class="m-2" :disabled="!input.type?.includes('File')">
-
+      <b-form-checkbox v-model="input.streamable" class="m-2" v-if="input.type?.includes('File')">
+        Streamable
       </b-form-checkbox>
       <b-form-group
-          label="Input Binding:"
-          description="Describes how to handle the inputs of a process."
+        label="Input Binding:"
+        description="Describes how to handle the inputs of a process."
       >
         <div class="composite-input">
           <b-form-group
-              label-cols-sm="2.5"
-              label="Position:"
+            label-cols-sm="2.5"
+            label="Position:"
           >
-            <b-form-input :v-model="input.inputBinding?.position" type="number"/>
+            <b-form-input v-model="input.inputBinding.position" type="number" min="1"/>
           </b-form-group>
           <b-form-group
-              label-cols-sm="2.5"
-              label="Prefix:"
+            label-cols-sm="2.5"
+            label="Prefix:"
           >
-            <b-form-input :v-model="input.inputBinding?.prefix" type="text"/>
+            <b-form-input v-model="input.inputBinding.prefix" type="text"/>
           </b-form-group>
           <b-form-group
-              label-cols-sm="2.5"
-              label="Item Separator:"
+            label-cols-sm="2.5"
+            label="Item Separator:"
           >
-            <b-form-input :v-model="input.inputBinding?.itemSeparator" type="text"/>
+            <b-form-input v-model="input.inputBinding.itemSeparator" type="text"/>
           </b-form-group>
           <b-form-group
-              label-cols-sm="2.5"
-              label="Value From:"
+            label-cols-sm="2.5"
+            label="Value From:"
           >
-            <b-form-input :v-model="input.inputBinding?.valueFrom" type="text"/>
+            <b-form-input v-model="input.inputBinding.valueFrom" type="text"/>
           </b-form-group>
           <b-row class="mt-2">
             <b-col sm="4">
-              <b-form-checkbox :v-model="input.inputBinding?.loadContents">Load Contents</b-form-checkbox>
+              <b-form-checkbox v-model="input.inputBinding.loadContents">Load Contents</b-form-checkbox>
             </b-col>
             <b-col sm="4">
-              <b-form-checkbox :v-model="input.inputBinding?.separate">Separate</b-form-checkbox>
+              <b-form-checkbox v-model="input.inputBinding.separate">Separate</b-form-checkbox>
             </b-col>
             <b-col sm="4">
-              <b-form-checkbox :v-model="input.inputBinding?.shellQuote">Shell Quote</b-form-checkbox>
+              <b-form-checkbox v-model="input.inputBinding.shellQuote">Shell Quote</b-form-checkbox>
             </b-col>
           </b-row>
         </div>
       </b-form-group>
       <b-form-group
-          label="Label:"
-          description="A short, human-readable label of this object."
+        label="Label:"
+        description="A short, human-readable label of this object."
       >
         <b-form-input v-model="input.label" type="text"/>
       </b-form-group>
       <b-form-group
-          label="Doc:"
-          description="A documentation string for this type."
+        label="Description:"
+        description="A documentation string for this type."
       >
         <b-form-textarea v-model="input.doc" rows="3" max-rows="6"/>
       </b-form-group>
@@ -106,20 +106,22 @@ import Multiselect from "vue-multiselect";
 import {cwlTypes} from "../../cwlObjectValidator";
 
 export default {
-  name: "WorkflowInputForm",
-  components: { Multiselect },
+  name: "CommandLineToolInputForm",
+  components: {Multiselect},
   props: {
+    inOutIds: Array,
     inputProp: Object,
   },
   data() {
     return {
-      input: this.inputProp ?  {...this.inputProp, type: this.inputProp.type?.replace('?', '')} : {
+      input: {
         id: undefined,
         label: undefined,
         doc: undefined,
         default: undefined,
-        type: undefined,
         streamable: undefined,
+        ...this.inputProp,
+        type: this.inputProp?.type?.replace('?', ''),
         inputBinding: {
           loadContents: undefined,
           position: undefined,
@@ -132,7 +134,7 @@ export default {
         }
       },
       optionalType: this.inputProp?.type?.endsWith('?') || false,
-    }
+    };
   },
   methods: {
     handleSubmit() {
@@ -152,16 +154,19 @@ export default {
   },
   computed: {
     dataTypes() {
-      return [
-        ...cwlTypes,
-        ...cwlTypes.filter(type => type !== 'Directory' && type !== 'File').map(type => `${type}[]`),
-      ];
+      return cwlTypes;
     },
     idValidator() {
-      return this.input.id !== undefined && this.input.id.length > 0;
+      return this.input?.id !== undefined && this.input?.id.length > 0
+        && this.inOutIds.filter(id => id === this.input?.id && id !== this.inputProp?.id).length === 0;
+    },
+    idValidatorFeedback() {
+      if (this.input?.id === undefined || this.input?.id.length === 0)
+        return 'This field is required.';
+      return 'This field must be unique.';
     }
   }
-}
+};
 </script>
 
 <style scoped>
