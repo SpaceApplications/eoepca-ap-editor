@@ -5,15 +5,19 @@ import {library} from "@fortawesome/fontawesome-svg-core";
 import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
 import Notifications from "vue-notification";
 import {store} from "./store/store";
+import VueTour from 'vue-tour';
 
 import yaml from "highlight.js/lib/languages/yaml";
 
 import VueHighlightJS from "vue-highlight.js";
 import "highlight.js/styles/atom-one-light.css";
+import "vue-tour/dist/vue-tour.css";
 
 Vue.use(VueHighlightJS, {
   languages: {yaml}
 });
+
+Vue.use(VueTour);
 
 import {
   faAngleDoubleLeft,

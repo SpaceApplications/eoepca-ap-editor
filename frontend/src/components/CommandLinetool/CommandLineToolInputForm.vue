@@ -1,6 +1,6 @@
 <template>
   <b-form @submit.stop.prevent>
-    <div class="form-content">
+    <div class="form-content" data-v-step="clt-tour-7">
       <b-form-group
         label="Identifier:"
         description="The unique identifier for this parameter object."
@@ -93,7 +93,7 @@
         <fa-icon class="mr-2" :icon="this.inputProp ? 'save' : 'plus'"/>
         <span>{{ this.inputProp ? 'Save' : 'Add' }}</span>
       </b-btn>
-      <b-btn @click="handleCancel" size="sm">
+      <b-btn @click="handleCancel" size="sm" id="clt-input-modal-cancel-btn">
         <fa-icon class="mr-2" icon="times"/>
         <span>Cancel</span>
       </b-btn>

@@ -136,7 +136,7 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section">
+    <div class="card-section" data-v-step="clt-tour-10">
       <div class="title" v-b-toggle.collapse-steps>Steps</div>
       <b-collapse id="collapse-steps" visible>
         <b-table :fields="stepTableFields" :items="workflow.steps" small show-empty>

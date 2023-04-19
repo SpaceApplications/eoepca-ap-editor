@@ -7,6 +7,7 @@
       :max="5"
       width="500px"
       position="top right"
+      v-if="!guidedTourRunning"
     >
       <template slot="body" slot-scope="props">
         <div :class="`vue-notification-template notifications ${props.item.type}`" style="word-break: break-word">
@@ -32,6 +33,7 @@
       :max="2"
       width="500px"
       position="top center"
+      v-if="!guidedTourRunning"
     >
       <template slot="body" slot-scope="props">
         <div :class="`vue-notification-template notifications ${props.item.type}`" style="word-break: break-word">
@@ -50,7 +52,7 @@
         </div>
       </template>
     </notifications>
-    <ApplicationPackageEditor/>
+    <ApplicationPackageEditor ref="appPackageEditor"/>
   </div>
 </template>
 
@@ -62,6 +64,16 @@ export default {
   components: {
     ApplicationPackageEditor
   },
+  mounted() {
+    this.$watch(
+      () => this.$refs.appPackageEditor?.guidedTourRunning, (n, o) => this.guidedTourRunning = n
+    );
+  },
+  data() {
+    return {
+      guidedTourRunning: false
+    };
+  }
 };
 </script>
 

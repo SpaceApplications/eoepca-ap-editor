@@ -1,14 +1,17 @@
 <template>
   <b-row :class="{ divider: !noDivider }" class="page-title" align-v="end" no-gutters>
-    <b-col cols="12" lg="6">
-      <slot name="title">
-        <div>
-          <span class="title">{{ title }}</span>
-        </div>
-      </slot>
-      <slot name="subtitle">
-        <h5 class="subtitle">{{ subtitle }}</h5>
-      </slot>
+    <b-col cols="12" lg="6" style="display: flex; align-items: center">
+      <slot name="help"/>
+      <div>
+        <slot name="title">
+          <div>
+            <span class="title">{{ title }}</span>
+          </div>
+        </slot>
+        <slot name="subtitle">
+          <h5 class="subtitle">{{ subtitle }}</h5>
+        </slot>
+      </div>
     </b-col>
     <b-col cols="12" lg="6" align="right">
       <slot name="toolbar"></slot>

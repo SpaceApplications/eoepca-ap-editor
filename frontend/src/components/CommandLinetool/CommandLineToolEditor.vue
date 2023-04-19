@@ -51,7 +51,7 @@
       <b-col sm="3">
         <b-form-input type="text" :disabled="true" v-model="commandLineTool.class"/>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" :data-v-step="`${pos}-clt-tour-3`">
         <b-form-input type="text" v-model="commandLineTool.id" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">
           {{ this.idValidatorFeedback }}
@@ -65,7 +65,7 @@
       </b-col>
     </b-row>
     <b-row class="mt-2">
-      <b-col sm="6">
+      <b-col sm="6" :data-v-step="`${pos}-clt-tour-4`">
         <b-form-group label="Base Command:">
           <empty class="m-0 p-0" v-if="commandLineTool.baseCommand?.length === 0" text="No Commands" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -106,7 +106,7 @@
           </div>
         </b-form-group>
       </b-col>
-      <b-col sm="6">
+      <b-col sm="6" :data-v-step="`${pos}-clt-tour-5`">
         <b-form-group label="Arguments:">
           <empty class="m-0 p-0" v-if="commandLineTool.arguments?.length === 0" text="No Arguments" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -152,7 +152,7 @@
     </b-row>
     <div class="card-section">
       <div class="title" v-b-toggle="`collapse-inputs-${pos}`">Inputs</div>
-      <b-collapse :id="`collapse-inputs-${pos}`">
+      <b-collapse :id="`collapse-inputs-${pos}`" visible>
         <b-table :fields="inputTableFields" :items="commandLineTool.inputs" small show-empty>
           <template #cell(action)="data">
             <b-btn
@@ -173,6 +173,8 @@
           <b-btn
             class="add-btn" variant="outline-success"
             @click="showModalForm('CommandLineTool Input')" size="sm"
+            id="clt-input-modal-open-btn"
+            :data-v-step="`${pos}-clt-tour-6`"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add input</span>
@@ -180,9 +182,9 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section">
+    <div class="card-section" :data-v-step="`${pos}-clt-tour-8`">
       <div class="title" v-b-toggle="`collapse-outputs-${pos}`">Outputs</div>
-      <b-collapse :id="`collapse-outputs-${pos}`">
+      <b-collapse :id="`collapse-outputs-${pos}`" visible>
         <b-table :fields="outputTableFields" :items="commandLineTool.outputs" small show-empty>
           <template #cell(action)="data">
             <b-btn
@@ -216,7 +218,7 @@
       :requirements-prop="commandLineTool.requirements"
       :pos="pos"
       modal-title-prop="CommandLineTool Requirements"
-      :collapsed-prop="false"
+      :collapsed-prop="true"
     />
   </div>
 </template>
