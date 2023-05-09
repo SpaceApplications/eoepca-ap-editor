@@ -1,17 +1,11 @@
 <template>
   <b-form>
     <div class="form-content">
-      <b-form-group
-        label="Identifier:"
-        description="The unique identifier for this parameter object."
-      >
+      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
         <b-form-input v-model="output.id" type="text"/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group
-        label="Type:"
-        description="Specify valid types of data that may be assigned to this parameter."
-      >
+      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramType')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect v-model="output.type" :options="dataTypes"/>
@@ -25,44 +19,41 @@
         label="Format:"
         description="Note: you can add a list of format using ',' as a separator."
         v-if="output.type?.includes('File')"
+        v-b-tooltip.hover.html="getHelper('paramFormat')"
       >
         <b-form-input :value="formatValue" @input="handleFormatChange" type="text"/>
       </b-form-group>
-      <b-form-checkbox v-model="output.streamable" class="m-2" v-if="output.type?.includes('File')">
+      <b-form-checkbox
+        v-model="output.streamable" class="m-2" v-if="output.type?.includes('File')"
+        v-b-tooltip.hover.html="getHelper('paramStreamable')"
+      >
         Streamable
       </b-form-checkbox>
-      <b-form-group
-        label="Output Binding:"
-        description="Describes how to handle the outputs of a process."
-      >
-        <div class="composite-output">
-          <b-form-group
-            label-cols-sm="2.5"
-            label="Glob:"
-          >
-            <b-form-input :v-model="output.outputBinding?.glob" type="text"/>
-          </b-form-group>
-          <b-form-group
-            label-cols-sm="2.5"
-            label="Output Eval:"
-          >
-            <b-form-input :v-model="output.outputBinding?.outputEval" type="text"/>
-          </b-form-group>
-          <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
-        </div>
-      </b-form-group>
-      <b-form-group
-        label="Label:"
-        description="A short, human-readable label of this object."
-      >
-        <b-form-input v-model="output.label" type="text"/>
-      </b-form-group>
-      <b-form-group
-        label="Description:"
-        description="A documentation string for this type."
-      >
-        <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
-      </b-form-group>
+      <div v-if="mode==='advanced'">
+        <b-form-group label="Output Binding:" v-b-tooltip.hover.html="getHelper('paramOutputBinding')">
+          <div class="composite-output">
+            <b-form-group
+              label-cols-sm="2.5"
+              label="Glob:"
+            >
+              <b-form-input :v-model="output.outputBinding?.glob" type="text"/>
+            </b-form-group>
+            <b-form-group
+              label-cols-sm="2.5"
+              label="Output Eval:"
+            >
+              <b-form-input :v-model="output.outputBinding?.outputEval" type="text"/>
+            </b-form-group>
+            <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
+          </div>
+        </b-form-group>
+        <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
+          <b-form-input v-model="output.label" type="text"/>
+        </b-form-group>
+        <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
+          <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
+        </b-form-group>
+      </div>
     </div>
     <div class="form-control-btn">
       <b-btn variant="primary" :disabled="!idValidator" @click="handleSubmit">
@@ -80,6 +71,7 @@
 <script>
 import Multiselect from "vue-multiselect";
 import {cwlTypes} from "../../cwlObjectValidator";
+import {mapGetters} from "vuex";
 
 export default {
   name: "CommandLineToolOutputForm",
@@ -148,7 +140,10 @@ export default {
     formatValue() {
       if (Array.isArray(this.output.format)) return this.output.format.join(', ');
       return this.output.format;
-    }
+    },
+    ...mapGetters({
+      mode: 'mode'
+    }),
   }
 };
 </script>

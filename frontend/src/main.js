@@ -12,6 +12,7 @@ import yaml from "highlight.js/lib/languages/yaml";
 import VueHighlightJS from "vue-highlight.js";
 import "highlight.js/styles/atom-one-light.css";
 import "vue-tour/dist/vue-tour.css";
+import tooltips from './data/tooltips.json';
 
 Vue.use(VueHighlightJS, {
   languages: {yaml}
@@ -178,9 +179,18 @@ Vue.use(BootstrapVue);
 Vue.use(Notifications);
 Vue.use(BootstrapVueIcons);
 
+
 Vue.component("fa-icon", FontAwesomeIcon);
 Vue.component("BIcon", BIcon);
 Vue.component("BIconThreeDots", BIconThreeDots);
+
+Vue.mixin({
+  methods: {
+    getHelper: function (id) {
+      return tooltips[id];
+    }
+  },
+});
 
 new Vue({
   store: store,

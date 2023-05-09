@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Proc-Ades",
+    "filename": "proc_ades.cwl",
+    "url": "https://raw.githubusercontent.com/EOEPCA/proc-ades/master/test/sample_apps/v2/dNBR/workflow.cwl"
+  },
+  {
+    "label": "Proc-Ades 2",
+    "filename": "proc_ades_2.cwl",
+    "url": "https://raw.githubusercontent.com/EOEPCA/proc-ades/master/test/sample_apps/v2/dNBR/workflow.cwl"
+  }
+]

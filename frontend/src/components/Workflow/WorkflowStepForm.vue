@@ -1,21 +1,19 @@
 <template>
   <b-form @submit.stop.prevent>
     <div class="form-content">
-      <b-form-group
-        label="Identifier:"
-        description="The unique identifier for this parameter object."
-      >
-        <b-form-input v-model="step.id" type="text" @keydown.space.prevent/>
-        <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
-      </b-form-group>
-      <b-form-group label="Run">
+
+      <b-form-group label="Command Line Tool" v-b-tooltip.hover.html="getHelper('paramRun')">
         <multiselect
           :value="cltMap" :options="commandLineTools"
           label="id" @select="onCltSelect" @remove="removeClt"
           placeholder="Select a Command Line Tool..."
         />
       </b-form-group>
-      <b-form-group label="In:">
+      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
+        <b-form-input v-model="step.id" type="text" @keydown.space.prevent/>
+        <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
+      </b-form-group>
+      <b-form-group label="In:" v-b-tooltip.hover.html="getHelper('inputs')">
         <empty class="m-0 p-0" v-if="!step.in?.length" text="No Inputs" no-icon></empty>
         <b-row class="mt-2" v-for="input in step.in" :key="input._key">
           <b-col sm="5" class="center-text">
@@ -33,37 +31,35 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group label="Out:">
+      <b-form-group label="Out:" v-b-tooltip.hover.html="getHelper('outputs')">
         <b-form-input :value="step.out.join(', ')" type="text" disabled/>
       </b-form-group>
-      <requirement-editor
-        :allow-workflow-req="true" :requirements-prop="step.requirements" modal-title-prop="Step Requirements"
-      />
-      <b-form-group
-        label="Scatter:"
-        description="Note: you can add a list of input using ',' as a separator."
-      >
-        <b-form-input :value="scatterValue" @input="handleScatterChange" type="text"/>
-      </b-form-group>
-      <b-form-group
-        label="Scatter Method:"
-        description="Required if scatter is an array of more than one element."
-      >
-        <multiselect v-model="step.scatterMethod" :options="scatterMethodOptions"/>
-        <b-form-invalid-feedback :state="scatterMethodValidator">
-          This field is required when the scatter field is an array.
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-form-group
-        label="Label:"
-        description="A short, human-readable label of this process object."
-      >
+      <div v-if="mode==='advanced'">
+        <requirement-editor
+          :allow-workflow-req="true" :requirements-prop="step.requirements" modal-title-prop="Step Requirements"
+        />
+        <b-form-group
+          label="Scatter:"
+          description="Note: you can add a list of input using ',' as a separator."
+          v-b-tooltip.hover.html="getHelper('paramScatter')"
+        >
+          <b-form-input :value="scatterValue" @input="handleScatterChange" type="text"/>
+        </b-form-group>
+        <b-form-group
+          label="Scatter Method:"
+          description="Required if scatter is an array of more than one element."
+          v-b-tooltip.hover.html="getHelper('paramScatterMethod')"
+        >
+          <multiselect v-model="step.scatterMethod" :options="scatterMethodOptions"/>
+          <b-form-invalid-feedback :state="scatterMethodValidator">
+            This field is required when the scatter field is an array.
+          </b-form-invalid-feedback>
+        </b-form-group>
+      </div>
+      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
         <b-form-input v-model="step.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group
-        label="Description:"
-        description="A long, human-readable description of this process object."
-      >
+      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
         <b-form-textarea v-model="step.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>
@@ -132,6 +128,7 @@ export default {
         this.step.run = `#${selectedClt.id}`;
         this.step.in = selectedClt.inputs.map(input => ({id: input.id, source: undefined}));
         this.step.out = selectedClt.outputs.map(output => output.id);
+        if (_.isEmpty(this.step.id)) this.step.id = `${selectedClt.id}_step`;
       }
     },
     removeClt() {
@@ -187,7 +184,8 @@ export default {
     },
     ...mapGetters({
       workflow: 'workflow',
-      commandLineTools: 'commandLineTools'
+      commandLineTools: 'commandLineTools',
+      mode: 'mode'
     })
   }
 };

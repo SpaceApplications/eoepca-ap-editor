@@ -1,17 +1,11 @@
 <template>
   <b-form>
     <div class="form-content">
-      <b-form-group
-        label="Identifier:"
-        description="The unique identifier for this parameter object."
-      >
+      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
         <b-form-input v-model="output.id" type="text" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group
-        label="Type:"
-        description="Specify valid types of data that may be assigned to this parameter."
-      >
+      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramDefault')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect :value="output.type" :options="dataTypes" @select="onTypeChange" @remove="remove"/>
@@ -21,39 +15,26 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group label="Output Source:">
+      <b-form-group label="Output Source:" v-b-tooltip.hover.html="getHelper('paramOutputSource')">
         <multiselect :value="outputSourceValue" :options="availableOutputs" label='id' @select="onOutputSourceSelect"/>
       </b-form-group>
-      <b-form-group
-        label="Output Binding:"
-        description="Describes how to handle the outputs of a process."
-      >
-        <div class="composite-output">
-          <b-form-group
-            label-cols-sm="2.5"
-            label="Glob:"
-          >
-            <b-form-input :v-model="output.outputBinding?.glob" type="text" @keydown.space.prevent/>
-          </b-form-group>
-          <b-form-group
-            label-cols-sm="2.5"
-            label="Output Eval:"
-          >
-            <b-form-input :v-model="output.outputBinding?.outputEval" type="text" @keydown.space.prevent/>
-          </b-form-group>
-          <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
-        </div>
-      </b-form-group>
-      <b-form-group
-        label="Label:"
-        description="A short, human-readable label of this object."
-      >
+      <div v-if="mode==='advanced'">
+        <b-form-group label="Output Binding:" v-b-tooltip.hover.html="getHelper('paramOutputBinding')">
+          <div class="composite-output">
+            <b-form-group label-cols-sm="2.5" label="Glob:">
+              <b-form-input :v-model="output.outputBinding?.glob" type="text" @keydown.space.prevent/>
+            </b-form-group>
+            <b-form-group label-cols-sm="2.5" label="Output Eval:">
+              <b-form-input :v-model="output.outputBinding?.outputEval" type="text" @keydown.space.prevent/>
+            </b-form-group>
+            <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
+          </div>
+        </b-form-group>
+      </div>
+      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
         <b-form-input v-model="output.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group
-        label="Description:"
-        description="A documentation string for this type."
-      >
+      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
         <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>
@@ -165,7 +146,8 @@ export default {
     },
     ...mapGetters({
       workflow: 'workflow',
-      commandLineTools: 'commandLineTools'
+      commandLineTools: 'commandLineTools',
+      mode: 'mode'
     })
   }
 };

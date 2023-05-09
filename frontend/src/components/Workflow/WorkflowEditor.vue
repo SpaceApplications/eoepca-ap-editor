@@ -35,38 +35,30 @@
       />
     </b-modal>
     <b-row class="mb-1">
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('class')">
         <h6>Class</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Identifier</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Label</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Description</h6>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2">
-      <b-col sm="3">
         <b-form-input type="text" :disabled="true" v-model="workflow.class"/>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('identifier')">
+        <h6>Identifier</h6>
         <b-form-input type="text" v-model="workflow.id" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">
           {{ this.idValidatorFeedback }}
         </b-form-invalid-feedback>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('label')">
+        <h6>Label</h6>
         <b-form-input type="text" v-model="workflow.label" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('description')">
+        <h6>Description</h6>
         <b-form-input type="text" v-model="workflow.doc"/>
       </b-col>
     </b-row>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-inputs>Inputs</div>
+      <div class="title" v-b-toggle.collapse-inputs v-b-tooltip.hover.html="getHelper('inputs')">
+        Inputs
+      </div>
       <b-collapse id="collapse-inputs" visible>
         <b-table :fields="inputTableFields" :items="workflow.inputs" small show-empty>
           <template #cell(action)="data">
@@ -98,7 +90,9 @@
       </b-collapse>
     </div>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-outputs>Outputs</div>
+      <div class="title" v-b-toggle.collapse-outputs v-b-tooltip.hover.html="getHelper('outputs')">
+        Outputs
+      </div>
       <b-collapse id="collapse-outputs" visible>
         <b-table :fields="outputTableFields" :items="workflow.outputs" small show-empty>
           <template #cell(outputSource)="data">
@@ -136,8 +130,10 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section" data-v-step="clt-tour-10">
-      <div class="title" v-b-toggle.collapse-steps>Steps</div>
+    <div class="card-section" id="wfl-steps-card">
+      <div class="title" v-b-toggle.collapse-steps v-b-tooltip.hover.html="getHelper('steps')">
+        Steps
+      </div>
       <b-collapse id="collapse-steps" visible>
         <b-table :fields="stepTableFields" :items="workflow.steps" small show-empty>
           <template #cell(run)="data">
@@ -228,7 +224,7 @@ export default {
       ],
       stepTableFields: [
         {key: 'id', label: 'Identifier', thStyle: {width: "20%"}},
-        {key: 'run', label: 'Run', thStyle: {width: "15%"}},
+        {key: 'run', label: 'Command Line Tool', thStyle: {width: "15%"}},
         {key: 'in', label: 'Step Inputs', thStyle: {width: "30%"}},
         {key: 'out', label: 'Step Outputs', thStyle: {width: "25%"}},
         {key: 'action', label: '', thStyle: {width: "10%"}},

@@ -15,9 +15,44 @@
                   style="height: 1.8rem; width: 1.8rem; color: white"
                 />
               </template>
+              <b-dropdown-item
+                @click="showConfirmReset"
+              >
+                <b-icon icon="arrow-counterclockwise"/>
+                Reset Editor
+              </b-dropdown-item>
+              <div class="p-2">
+                <span style="font-weight: bold; font-size: 14px">Editor Mode</span>
+                <b-dropdown-item @click="setMode('simple')">
+                  <b-icon icon="check-circle" variant="success" v-if="mode === 'simple'"/>
+                  Simple
+                </b-dropdown-item>
+                <b-dropdown-item @click="setMode('advanced')">
+                  <b-icon icon="check-circle" variant="success" v-if="mode === 'advanced'"/>
+                  Advanced
+                </b-dropdown-item>
+              </div>
+              <div class="p-2">
+                <span style="font-weight: bold; font-size: 14px">Manuals & References</span>
+                <b-dropdown-item>
+                  User Manual
+                </b-dropdown-item>
+                <b-dropdown-item @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html')">
+                  OGC Earth Observation Application Package
+                </b-dropdown-item>
+              </div>
+              <div class="p-2">
+                <span style="font-weight: bold; font-size: 14px">Application Package Examples</span>
+                <b-dropdown-item
+                  v-for="example in examplesList" :key="example._key"
+                  @click="setCwlExample(example['filename'], example['url'])"
+                >
+                  {{ example['label'] }}
+                </b-dropdown-item>
+              </div>
               <div class="p-2">
                 <span style="font-weight: bold; font-size: 14px">Guided Tours</span>
-                <b-dropdown-item @click="startGuidedTour('clt-tour')">
+                <b-dropdown-item @click="startGuidedTour('newProcessingTaskTour')">
                   Creation of a new processing task (CommandLineTool)
                 </b-dropdown-item>
               </div>
@@ -61,19 +96,34 @@
       </page-title>
       <b-row>
         <b-col lg="12" xl="7">
-          <b-tabs content-class="mt-2" fill :v-model="currentTab">
-            <b-tab title="Metadata" :active="currentTab===0">
+          <b-tabs content-class="mt-2" fill v-model="currentTab">
+            <b-tab :active="currentTab === 0">
+              <template v-slot:title>
+                Metadata
+                <b-icon
+                  v-b-tooltip.hover="'Metadata Best Practice'"
+                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc31')"
+                />
+              </template>
               <b-card header="Metadata" class="editor-card">
                 <metadata-editor/>
               </b-card>
             </b-tab>
-            <b-tab :active="currentTab===1">
-              <template slot="title"><span data-v-step="clt-tour-1">Command Line Tool</span></template>
+            <b-tab :active="currentTab === 1">
+              <template slot="title">
+                <span id="clt-tab-title">Command Line Tool</span>&nbsp;
+                <b-icon
+                  v-b-tooltip.hover="'Command Line Tool Best Practice'"
+                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc27')"
+                />
+              </template>
               <b-row class="m-2">
                 <b-col align="center">
-                  <b-btn class="add-btn" variant="primary" ref='addCltButton' @click="pushNewClt" size="sm">
+                  <b-btn
+                    id="clt-add-btn" class="add-btn" variant="primary" ref='addCltButton' @click="pushNewClt" size="sm"
+                  >
                     <fa-icon icon="plus"></fa-icon>
-                    <span data-v-step="clt-tour-2" class="ml-2">Add Command Line Tool</span>
+                    <span class="ml-2">Add Command Line Tool</span>
                   </b-btn>
                 </b-col>
               </b-row>
@@ -93,7 +143,14 @@
                 </b-card>
               </div>
             </b-tab>
-            <b-tab title="Workflow" :active="currentTab===2">
+            <b-tab :active="currentTab === 2">
+              <template v-slot:title>
+                Workflow
+                <b-icon
+                  v-b-tooltip.hover="'Workflow Best Practice'"
+                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc28')"
+                />
+              </template>
               <b-card :header="workflow.id ? `Workflow: ${workflow.id}` : 'Workflow'" class="editor-card">
                 <workflow-editor/>
               </b-card>
@@ -128,31 +185,26 @@ import {cwlValidator} from "../cwlObjectValidator";
 import MetadataEditor from "../components/metadata/MetadataEditor";
 import WorkflowEditor from "../components/Workflow/WorkflowEditor";
 import CommandLineToolEditor from "../components/CommandLinetool/CommandLineToolEditor";
-import {parseCwlObject, removeEmpty, showNotification, validateCwlConsistency, waitForElm} from "../utils";
+import {parseCwlObject, removeEmpty, showNotification, validateCwlConsistency} from "../utils";
 import {mapGetters} from "vuex";
 import {
   ADD_COMMAND_LINE_TOOL,
   CHANGE_FILE_NAME,
-  REMOVE_COMMAND_LINE_TOOL,
-  SET_CWL_OBJECT
+  REMOVE_COMMAND_LINE_TOOL, RESET_EDITOR,
+  SET_CWL_OBJECT,
+  SET_MODE
 } from "../store/action-types";
 import {BIcon} from "bootstrap-vue";
+import {guidedTours, guidedToursCallbacks} from "../guidedTour";
+import examples from '../data/examples.json';
 
 export default {
   name: "ApplicationPackageEditor",
   components: {BIcon, MetadataEditor, WorkflowEditor, CommandLineToolEditor, ApplicationPackageCwlTemplate, PageTitle},
   data() {
     return {
-      guidedTourCallbacks: {
-        onStop: () => {
-          this.guidedTourRunning = false;
-          if (this.$refs.cltTour.currentStep >= 2) {
-            this.$store.dispatch(REMOVE_COMMAND_LINE_TOOL, this.commandLineTools[this.commandLineTools.length - 1]);
-          }
-        },
-        onNextStep: () => console.log(this.idxLastClt)
-      },
       guidedTourRunning: false,
+      selectedGuidedTour: 'newProcessingTaskTour',
       modalIdentifier: 'Workflow Input',
       selectedInput: undefined,
       idx: undefined,
@@ -213,7 +265,7 @@ export default {
       this.$store.dispatch(CHANGE_FILE_NAME, value);
     },
     validateCwl() {
-      const issues = validateCwlConsistency(this.cwlObject);
+      const issues = validateCwlConsistency(this.nsPrefix, this.cwlObject);
       if (issues.length) {
         showNotification(
           'CWL Validation issues', {group: 'global', type: 'error', text: issues, duration: -1}
@@ -226,72 +278,49 @@ export default {
     },
     startGuidedTour(tourName) {
       this.guidedTourRunning = true;
-      this.$tours[tourName].start();
+      this.selectedGuidedTour = tourName;
+      this.$tours['clt-tour'].start();
     },
+    openNewTab(event, href) {
+      event.preventDefault();
+      window.open(href, '_blank');
+    },
+    setMode(mode) {
+      this.$store.dispatch(SET_MODE, mode);
+    },
+    resetEditor() {
+      this.$store.dispatch(RESET_EDITOR);
+    },
+    showConfirmReset() {
+      this.$bvModal.msgBoxConfirm('All entered values will be lost, are you sure?').then(value => {
+        if (value) this.resetEditor();
+      });
+    },
+    setCwlExample(filename, url) {
+      this.$bvModal.msgBoxConfirm('All entered values will be lost, are you sure?').then(value => {
+        if (value) fetch(url).then(r => r.text()).then(fileContent => {
+            const yamlObject = this.yamlToObject(fileContent);
+            cwlValidator.validate(yamlObject, {strict: true}).then((validatedCwlObject) => {
+              this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject));
+              this.$store.dispatch(CHANGE_FILE_NAME, filename);
+              this.validateCwl();
+            }).catch((error) => {
+              showNotification('CWL Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
+              this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject));
+              this.$store.dispatch(CHANGE_FILE_NAME, filename);
+              this.validateCwl();
+            });
+          }
+        );
+      });
+    }
   },
   computed: {
     steps() {
-      return [
-        {
-          target: '[data-v-step="clt-tour-1"]',
-          content: 'Use this tab to configure processing tasks.',
-        },
-        {
-          target: '[data-v-step="clt-tour-2"]',
-          content: 'Click here to define a new task.',
-          before: async type => {
-            this.currentTab = 1;
-            await waitForElm('[data-v-step="clt-tour-2"]');
-          }
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-3"]`,
-          content: 'Each processing task must be given a unique identifier.',
-          before: async type => {
-            if (type === 'next') this.$refs.addCltButton.click();
-            await waitForElm(`[data-v-step="${this.idxLastClt}-clt-tour-3"]`);
-          }
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-4"]`,
-          content: 'Enter here the name of the executable file.',
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-5"]`,
-          content: 'Specify here the static arguments, one element per field. Dynamic arguments are constructed ' +
-            'using the task inputs.',
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-6"]`,
-          content: 'Click here to define a new task input.',
-          before: type => type === 'previous' ?
-            document.getElementById('clt-input-modal-cancel-btn')?.click() : null
-        },
-        {
-          target: '[data-v-step="clt-tour-7"]',
-          content: 'Give the inputs a name, a type, and indicate in Input Binding how they are appended to the ' +
-            'command line.',
-          before: async type => {
-            document.getElementById('clt-input-modal-open-btn')?.click();
-            await waitForElm('[data-v-step="clt-tour-7"]');
-          }
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-8"]`,
-          content: 'Configure the task outputs.',
-          before: type => document.getElementById('clt-input-modal-cancel-btn')?.click()
-        },
-        {
-          target: `[data-v-step="${this.idxLastClt}-clt-tour-9"]`,
-          content: 'Indicate in a DockerRequirement the location of the Docker image that contains the task files.',
-          before: type => type === 'previous' ? this.currentTab = 1 : null
-        },
-        {
-          target: '[data-v-step="clt-tour-10"]',
-          content: 'Once a processing task is created it may be integrated as a step in a workflow.',
-          before: type => this.currentTab = 2
-        },
-      ];
+      return guidedTours[this.selectedGuidedTour](this);
+    },
+    guidedTourCallbacks() {
+      return guidedToursCallbacks[this.selectedGuidedTour](this);
     },
     cleanedCwl() {
       return removeEmpty(this.cwlObject);
@@ -301,10 +330,14 @@ export default {
       commandLineTools: 'commandLineTools',
       workflow: 'workflow',
       cwlFileName: 'cwlFileName',
-      nsPrefix: 'nsPrefix'
+      nsPrefix: 'nsPrefix',
+      mode: 'mode',
     }),
     idxLastClt() {
       return this.commandLineTools.length - 1;
+    },
+    examplesList() {
+      return examples;
     }
   }
 };

@@ -23,7 +23,7 @@ export const removeEmpty = (obj) => {
         if (typeof v === 'object' && !keepUnchanged.includes(k)) {
           if (Array.isArray(v)) return [k, v.map(e => removeEmpty(e))];
           if (Object.entries(v).filter(([, v]) => !_.isEmpty(v)).length > 0) return [k, removeEmpty(v)];
-          return undefined;
+          return [k, v];
         } else {
           return [k, v];
         }
@@ -136,7 +136,7 @@ export const parseCwlObject = (cwlObject) => {
   return parseMetadata(cwlObject);
 };
 
-export const validateCwlConsistency = (cwlObject) => {
+export const validateCwlConsistency = (nsPrefix, cwlObject) => {
   const issues = [];
   if (_.isEmpty(cwlObject.cwlVersion)) issues.push('CWL Version field is required.');
   if (cwlObject.$graph.some(p => !['Workflow', 'CommandLineTool'].includes(p.class))) {
@@ -154,6 +154,15 @@ export const validateCwlConsistency = (cwlObject) => {
     issues.push(
       'All Workflows and command line tools IDs inside of the $graph must be unique.'
     );
+  }
+  for(let i = 0; i < cwlObject[`${nsPrefix}:contributor`].length; i++) {
+    let c = cwlObject[`${nsPrefix}:contributor`][i];
+    if (_.isEmpty(c[`${nsPrefix}:name`]) || _.isEmpty(c[`${nsPrefix}:email`]) ||
+      _.isEmpty(c[`${nsPrefix}:affiliation`])) {
+      issues.push('Name, Email and Affiliation of each contributor are mandatory.');
+      break;
+    }
+
   }
   cwlObject.$graph.forEach(p => {
     if (!['Workflow', 'CommandLineTool'].includes(p.class)) return;

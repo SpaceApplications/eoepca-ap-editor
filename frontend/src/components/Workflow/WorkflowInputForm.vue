@@ -1,17 +1,11 @@
 <template>
   <b-form @submit.stop.prevent>
     <div class="form-content">
-      <b-form-group
-        label="Identifier:"
-        description="The unique identifier for this parameter object."
-      >
+      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
         <b-form-input v-model="input.id" type="text" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group
-        label="Type:"
-        description="Specify valid types of data that may be assigned to this parameter."
-      >
+      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramType')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect
@@ -24,22 +18,13 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group
-        label="Default:"
-        description="The default value to use for this parameter if the parameter is missing from the input object."
-      >
+      <b-form-group label="Default:" v-b-tooltip.hover.html="getHelper('paramDefault')">
         <b-form-input v-model="input.default" type="text"/>
       </b-form-group>
-      <b-form-group
-        label="Label:"
-        description="A short, human-readable label of this object."
-      >
+      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
         <b-form-input v-model="input.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group
-        label="Description:"
-        description="A documentation string for this type."
-      >
+      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
         <b-form-textarea v-model="input.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>
@@ -59,6 +44,7 @@
 <script>
 import Multiselect from "vue-multiselect";
 import {cwlTypes} from "../../cwlObjectValidator";
+import {mapGetters} from "vuex";
 
 export default {
   name: "WorkflowInputForm",
@@ -108,7 +94,10 @@ export default {
       if (this.input?.id === undefined || this.input?.id.length === 0)
         return 'This field is required.';
       return 'This field must be unique.';
-    }
+    },
+    ...mapGetters({
+      mode: 'mode'
+    }),
   }
 };
 </script>

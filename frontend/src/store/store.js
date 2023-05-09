@@ -18,38 +18,43 @@ export const DEFAULT_NS_PREFIX = 's';
 
 Vue.use(Vuex);
 
+const initialEditorState = () => ({
+  nsPrefix: DEFAULT_NS_PREFIX,
+  cwlFileName: 'application_package_template.cwl',
+  cwlObject: {
+    cwlVersion: 'v1.0',
+    $graph: [
+      {
+        id: undefined,
+        class: 'Workflow',
+        label: undefined,
+        description: undefined,
+        inputs: [],
+        outputs: [],
+        steps: [],
+        requirements: {},
+      }
+    ],
+    schemas: [],
+    $namespaces: {
+      [DEFAULT_NS_PREFIX]: DEFAULT_NAMESPACE
+    },
+    [`${DEFAULT_NS_PREFIX}:softwareVersion`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:dateCreated`]: (new Date()).toISOString().split('T')[0],
+    [`${DEFAULT_NS_PREFIX}:keywords`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:contributor`]: [],
+    [`${DEFAULT_NS_PREFIX}:codeRepository`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:releaseNotes`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:license`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:logo`]: undefined,
+    [`${DEFAULT_NS_PREFIX}:author`]: [],
+  }
+});
+
 export const store = new Vuex.Store({
   state: {
-    nsPrefix: DEFAULT_NS_PREFIX,
-    cwlFileName: 'application_package_template.cwl',
-    cwlObject: {
-      cwlVersion: 'v1.0',
-      $graph: [
-        {
-          id: undefined,
-          class: 'Workflow',
-          label: undefined,
-          description: undefined,
-          inputs: [],
-          outputs: [],
-          steps: [],
-          requirements: {},
-        }
-      ],
-      schemas: [],
-      $namespaces: {
-        [DEFAULT_NS_PREFIX]: DEFAULT_NAMESPACE
-      },
-      [`${DEFAULT_NS_PREFIX}:softwareVersion`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:dateCreated`]: (new Date()).toISOString().split('T')[0],
-      [`${DEFAULT_NS_PREFIX}:keywords`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:contributor`]: [],
-      [`${DEFAULT_NS_PREFIX}:codeRepository`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:releaseNotes`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:license`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:logo`]: undefined,
-      [`${DEFAULT_NS_PREFIX}:author`]: [],
-    }
+    mode: 'simple',
+    ...initialEditorState()
   },
   getters: {
     commandLineTools(state) {
@@ -75,9 +80,18 @@ export const store = new Vuex.Store({
     },
     schemas(state) {
       return state.cwlObject.schemas;
+    },
+    mode(state) {
+      return state.mode;
     }
   },
   mutations: {
+    [mutationTypes.SET_MODE](state, mode) {
+      Vue.set(state, 'mode', mode);
+    },
+    [mutationTypes.RESET_EDITOR](state) {
+      store.replaceState({mode: state.mode, ...initialEditorState()});
+    },
     [mutationTypes.ADD_COMMAND_LINE_TOOL](state) {
       state.cwlObject.$graph.push({
         id: undefined,
@@ -96,7 +110,7 @@ export const store = new Vuex.Store({
       state.cwlObject.$graph.splice(index, 1);
     },
     [mutationTypes.SET_CWL_OBJECT](state, cwlObject) {
-      Vue.set(state, "cwlObject", cwlObject);
+      Vue.set(state, 'cwlObject', cwlObject);
       Vue.set(state, 'nsPrefix',
         Object.entries(cwlObject.$namespaces).find(entry => entry[1] === DEFAULT_NAMESPACE)[0]);
     },
@@ -110,6 +124,7 @@ export const store = new Vuex.Store({
       Vue.set(state.cwlObject, `${nsPrefix}:codeRepository`, state.cwlObject[`${state.nsPrefix}:codeRepository`]);
       Vue.set(state.cwlObject, `${nsPrefix}:releaseNotes`, state.cwlObject[`${state.nsPrefix}:releaseNotes`]);
       Vue.set(state.cwlObject, `${nsPrefix}:license`, state.cwlObject[`${state.nsPrefix}:license`]);
+      Vue.set(state.cwlObject, `${nsPrefix}:logo`, state.cwlObject[`${state.nsPrefix}:logo`]);
       Vue.set(state.cwlObject, `${nsPrefix}:author`, state.cwlObject[`${state.nsPrefix}:author`].map(
         author => ({
           [`${nsPrefix}:name`]: author[`${state.nsPrefix}:name`],
@@ -133,6 +148,7 @@ export const store = new Vuex.Store({
       Vue.delete(state.cwlObject, `${state.nsPrefix}:codeRepository`);
       Vue.delete(state.cwlObject, `${state.nsPrefix}:releaseNotes`);
       Vue.delete(state.cwlObject, `${state.nsPrefix}:license`);
+      Vue.delete(state.cwlObject, `${state.nsPrefix}:logo`);
       state.nsPrefix = nsPrefix;
     },
     [mutationTypes.EDIT_NAMESPACE](state, propertyData) {
@@ -178,8 +194,23 @@ export const store = new Vuex.Store({
       const cltIndex = _.findIndex(state.cwlObject.$graph, instance);
       state.cwlObject.$graph[cltIndex][property].push(data);
     },
+    [mutationTypes.EDIT_CMD_ID](state, {instance, newId}) {
+      const cltIndex = _.findIndex(state.cwlObject.$graph, instance);
+      state.cwlObject.$graph.map(p => {
+        if (p.class === 'Workflow') p.steps.map(
+          step => step.run = step.run === `#${instance.id}` ? `#${newId}` : step.run
+        );
+      });
+      Vue.set(state.cwlObject.$graph[cltIndex], 'id', newId);
+    },
   },
   actions: {
+    [actionTypes.SET_MODE]({commit}, mode) {
+      commit(mutationTypes.SET_MODE, mode);
+    },
+    [actionTypes.RESET_EDITOR]({commit}) {
+      commit(mutationTypes.RESET_EDITOR);
+    },
     [actionTypes.ADD_COMMAND_LINE_TOOL]({commit}) {
       commit(mutationTypes.ADD_COMMAND_LINE_TOOL);
     },
@@ -258,6 +289,9 @@ export const store = new Vuex.Store({
     },
     [actionTypes.ADD_WORKFLOW_ELEMENT]({commit}, payload) {
       commit(mutationTypes.ADD_WORKFLOW_ELEMENT, payload);
+    },
+    [actionTypes.EDIT_CMD_ID]({commit}, payload) {
+      commit(mutationTypes.EDIT_CMD_ID, payload);
     },
   }
 });

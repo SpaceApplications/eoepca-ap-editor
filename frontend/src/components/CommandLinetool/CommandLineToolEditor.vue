@@ -34,38 +34,28 @@
       />
     </b-modal>
     <b-row class="mb-1">
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('class')">
         <h6>Class</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Identifier</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Label</h6>
-      </b-col>
-      <b-col sm="3">
-        <h6>Description</h6>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2">
-      <b-col sm="3">
         <b-form-input type="text" :disabled="true" v-model="commandLineTool.class"/>
       </b-col>
-      <b-col sm="3" :data-v-step="`${pos}-clt-tour-3`">
-        <b-form-input type="text" v-model="commandLineTool.id" @keydown.space.prevent/>
+      <b-col sm="3" :id="`clt-id-${pos}`" v-b-tooltip.hover.html="getHelper('identifier')">
+        <h6>Identifier</h6>
+        <b-form-input type="text" :value="commandLineTool.id" @input="handleIdChange" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">
           {{ this.idValidatorFeedback }}
         </b-form-invalid-feedback>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('label')">
+        <h6>Label</h6>
         <b-form-input type="text" v-model="commandLineTool.label" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="3">
+      <b-col sm="3" v-b-tooltip.hover.html="getHelper('description')">
+        <h6>Description</h6>
         <b-form-input type="text" v-model="commandLineTool.doc"/>
       </b-col>
     </b-row>
     <b-row class="mt-2">
-      <b-col sm="6" :data-v-step="`${pos}-clt-tour-4`">
+      <b-col sm="6" :id="`clt-exec-${pos}`" v-b-tooltip.hover.html="getHelper('baseCommand')">
         <b-form-group label="Base Command:">
           <empty class="m-0 p-0" v-if="commandLineTool.baseCommand?.length === 0" text="No Commands" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -106,7 +96,7 @@
           </div>
         </b-form-group>
       </b-col>
-      <b-col sm="6" :data-v-step="`${pos}-clt-tour-5`">
+      <b-col sm="6" :id="`clt-args-${pos}`" v-b-tooltip.hover.html="getHelper('arguments')">
         <b-form-group label="Arguments:">
           <empty class="m-0 p-0" v-if="commandLineTool.arguments?.length === 0" text="No Arguments" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -151,7 +141,9 @@
       </b-col>
     </b-row>
     <div class="card-section">
-      <div class="title" v-b-toggle="`collapse-inputs-${pos}`">Inputs</div>
+      <div class="title" v-b-toggle="`collapse-inputs-${pos}`" v-b-tooltip.hover.html="getHelper('inputs')">
+        Inputs
+      </div>
       <b-collapse :id="`collapse-inputs-${pos}`" visible>
         <b-table :fields="inputTableFields" :items="commandLineTool.inputs" small show-empty>
           <template #cell(action)="data">
@@ -173,8 +165,7 @@
           <b-btn
             class="add-btn" variant="outline-success"
             @click="showModalForm('CommandLineTool Input')" size="sm"
-            id="clt-input-modal-open-btn"
-            :data-v-step="`${pos}-clt-tour-6`"
+            :id="`clt-input-modal-btn-${pos}`"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add input</span>
@@ -182,8 +173,10 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section" :data-v-step="`${pos}-clt-tour-8`">
-      <div class="title" v-b-toggle="`collapse-outputs-${pos}`">Outputs</div>
+    <div class="card-section" :id="`clt-outputs-${pos}`">
+      <div class="title" v-b-toggle="`collapse-outputs-${pos}`" v-b-tooltip.hover.html="getHelper('outputs')">
+        Outputs
+      </div>
       <b-collapse :id="`collapse-outputs-${pos}`" visible>
         <b-table :fields="outputTableFields" :items="commandLineTool.outputs" small show-empty>
           <template #cell(action)="data">
@@ -232,7 +225,8 @@ import Empty from "../Shared/Empty";
 import {
   ADD_COMMAND_LINE_TOOL_ELEMENT,
   EDIT_COMMAND_LINE_TOOL,
-  REMOVE_COMMAND_LINE_TOOL_ELEMENT
+  REMOVE_COMMAND_LINE_TOOL_ELEMENT,
+  EDIT_CMD_ID,
 } from "../../store/action-types";
 import {mapGetters} from "vuex";
 
@@ -361,6 +355,9 @@ export default {
       const tmp = this.commandLineTool[property][index];
       this.$set(this.commandLineTool[property], index, this.commandLineTool[property][idxTarget]);
       this.$set(this.commandLineTool[property], idxTarget, tmp);
+    },
+    handleIdChange(newId) {
+      this.$store.dispatch(EDIT_CMD_ID, {instance: this.commandLineTool, newId: newId});
     }
   },
   computed: {

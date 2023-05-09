@@ -8,21 +8,23 @@
         <b-form-group label="Docker Pull:">
           <b-form-input v-model="requirement.dockerPull" type="text"/>
         </b-form-group>
-        <b-form-group label="Docker Load:">
-          <b-form-input v-model="requirement.dockerLoad" type="text"/>
-        </b-form-group>
-        <b-form-group label="Docker File:">
-          <b-form-input v-model="requirement.dockerFile" type="text"/>
-        </b-form-group>
-        <b-form-group label="Docker Import:">
-          <b-form-input v-model="requirement.dockerImport" type="text"/>
-        </b-form-group>
-        <b-form-group label="Docker Image ID:">
-          <b-form-input v-model="requirement.dockerImageId" type="text"/>
-        </b-form-group>
-        <b-form-group label="Docker Output Directory:">
-          <b-form-input v-model="requirement.dockerOutputDirectory" type="text"/>
-        </b-form-group>
+        <div v-if="mode==='advanced'">
+          <b-form-group label="Docker Load:">
+            <b-form-input v-model="requirement.dockerLoad" type="text"/>
+          </b-form-group>
+          <b-form-group label="Docker File:">
+            <b-form-input v-model="requirement.dockerFile" type="text"/>
+          </b-form-group>
+          <b-form-group label="Docker Import:">
+            <b-form-input v-model="requirement.dockerImport" type="text"/>
+          </b-form-group>
+          <b-form-group label="Docker Image ID:">
+            <b-form-input v-model="requirement.dockerImageId" type="text"/>
+          </b-form-group>
+          <b-form-group label="Docker Output Directory:">
+            <b-form-input v-model="requirement.dockerOutputDirectory" type="text"/>
+          </b-form-group>
+        </div>
       </div>
       <div v-if="type==='ResourceRequirement'" class="p-3" style="background-color: rgba(231,231,231,0.56)">
         <b-form-group label="Cores Min:">
@@ -102,8 +104,9 @@
 <script>
 import Multiselect from "vue-multiselect";
 import Empty from "./Shared/Empty";
-import {showNotification} from "../utils";
+import {removeEmpty, showNotification} from "../utils";
 import _ from 'lodash';
+import {mapGetters} from "vuex";
 
 export default {
   name: "RequirementForm",
@@ -126,9 +129,9 @@ export default {
   methods: {
     handleSubmit() {
       if (this.requirementProp) {
-        this.$emit('onEdit', {[this.type]: this.requirement});
+        this.$emit('onEdit', {[this.type]: removeEmpty(this.requirement)});
       } else {
-        this.$emit('onAdd', this.type, this.requirement);
+        this.$emit('onAdd', this.type, removeEmpty(this.requirement));
       }
     },
     handleCancel() {
@@ -164,6 +167,9 @@ export default {
         ...reqOptions, 'ScatterFeatureRequirement', 'MultipleInputFeatureRequirement', 'SubworkflowFeatureRequirement'
       ];
     },
+    ...mapGetters({
+      mode: 'mode'
+    }),
   }
 };
 </script>

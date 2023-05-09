@@ -1,75 +1,57 @@
 <template>
   <div>
     <b-row class="mb-1">
-      <b-col sm="2">
+      <b-col sm="2" v-b-tooltip.hover.html="getHelper('cwlVersion')">
         <h6>CWL Version</h6>
-      </b-col>
-      <b-col sm="2">
-        <h6>Creation Date</h6>
-      </b-col>
-      <b-col sm="2">
-        <h6>Software Version</h6>
-      </b-col>
-      <b-col sm="6">
-        <h6>Keywords</h6>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2">
-      <b-col sm="2">
         <b-form-input type="text" v-model="cwlObject.cwlVersion" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="versionValidator()">This field is required</b-form-invalid-feedback>
       </b-col>
-      <b-col sm="2">
+      <b-col sm="2" v-b-tooltip.hover.html="getHelper('dateCreated')">
+        <h6>Creation Date</h6>
         <b-form-input type="date" v-model="cwlObject[`${nsPrefix}:dateCreated`]"/>
       </b-col>
-      <b-col sm="2">
+      <b-col sm="2" v-b-tooltip.hover.html="getHelper('softwareVersion')">
+        <h6>Software Version</h6>
         <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:softwareVersion`]" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="6">
+      <b-col sm="6" v-b-tooltip.hover.html="getHelper('keywords')">
+        <h6>Keywords</h6>
         <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:keywords`]"/>
       </b-col>
     </b-row>
     <b-row class="mb-1 mt-3">
-      <b-col sm="6">
+      <b-col sm="6" v-b-tooltip.hover.html="getHelper('codeRepository')">
         <h6>Code Repository (URL)</h6>
-      </b-col>
-      <b-col sm="6">
-        <h6>License (URL)</h6>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2">
-      <b-col sm="6">
         <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:codeRepository`]" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="6">
+      <b-col sm="6" v-b-tooltip.hover.html="getHelper('license')">
+        <h6>License (URL)</h6>
         <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:license`]"/>
       </b-col>
     </b-row>
     <b-row class="mb-1 mt-3">
-      <b-col sm="6">
+      <b-col sm="6" v-b-tooltip.hover.html="getHelper('releaseNotes')">
         <h6>Release Notes (URL)</h6>
-      </b-col>
-      <b-col sm="6">
-        <h6>Logo (URL)</h6>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2">
-      <b-col sm="6">
         <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:releaseNotes`]"/>
       </b-col>
-      <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 5 : 6">
-        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:logo`]"/>
-      </b-col>
-      <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 1 : 0">
-        <img
-          v-if="cwlObject[`${nsPrefix}:logo`]"
-          :src="cwlObject[`${nsPrefix}:logo`]"
-          alt="Logo Image" style="width: 60px"
-        />
+      <b-col sm="6" v-b-tooltip.hover.html="getHelper('logo')">
+        <h6>Logo (URL)</h6>
+        <b-row>
+        <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 10 : 12">
+          <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:logo`]"/>
+        </b-col>
+        <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 2 : 0">
+          <img
+            v-if="cwlObject[`${nsPrefix}:logo`]"
+            :src="cwlObject[`${nsPrefix}:logo`]"
+            alt="Logo Image" style="width: 60px"
+          />
+        </b-col>
+          </b-row>
       </b-col>
     </b-row>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-authors>Authors</div>
+      <div class="title" v-b-toggle.collapse-authors v-b-tooltip.hover.html="getHelper('authors')">Authors</div>
       <b-collapse id="collapse-authors" visible>
         <empty class="m-0 p-0" v-if="authors?.length === 0" text="No Authors" no-icon></empty>
         <b-row class="mt-2" v-for="(author, index) in authors" :key="author._key">
@@ -117,7 +99,9 @@
       </b-collapse>
     </div>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-contributors>Contributors</div>
+      <div class="title" v-b-toggle.collapse-contributors v-b-tooltip.hover.html="getHelper('contributors')">
+        Contributors
+      </div>
       <b-collapse id="collapse-contributors" visible>
         <empty class="m-0 p-0" v-if="contributors?.length === 0" text="No Contributors" no-icon></empty>
         <b-row class="mt-2" v-for="(contributor, index) in contributors" :key="contributor._key">
@@ -127,6 +111,9 @@
               type="text"
               v-model="contributors[index][`${nsPrefix}:name`]"
             />
+            <b-form-invalid-feedback :state="contributorValidator(contributor[`${nsPrefix}:name`])">
+              This field is mandatory
+            </b-form-invalid-feedback>
           </b-col>
           <b-col sm="4">
             <b-form-input
@@ -135,6 +122,9 @@
               v-model="contributors[index][`${nsPrefix}:email`]"
               @keydown.space.prevent
             />
+            <b-form-invalid-feedback :state="contributorValidator(contributor[`${nsPrefix}:email`])">
+              This field is mandatory
+            </b-form-invalid-feedback>
           </b-col>
           <b-col sm="4">
             <b-form-input
@@ -142,6 +132,9 @@
               type="text"
               v-model="contributors[index][`${nsPrefix}:affiliation`]"
             />
+            <b-form-invalid-feedback :state="contributorValidator(contributor[`${nsPrefix}:affiliation`])">
+              This field is mandatory
+            </b-form-invalid-feedback>
           </b-col>
           <b-col align="right">
             <b-btn class="float-right" variant="danger" @click="removeContributor(index)" size="sm">
@@ -165,7 +158,7 @@
       </b-collapse>
     </div>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-schemas>Schemas</div>
+      <div class="title" v-b-toggle.collapse-schemas v-b-tooltip.hover.html="getHelper('schemas')">Schemas</div>
       <b-collapse id="collapse-schemas" visible>
         <empty class="m-0 p-0" v-if="schemas?.length === 0" text="No Schemas" no-icon></empty>
         <b-row class="mt-2" v-for="(schema, index) in schemas" :key="schema._key">
@@ -199,7 +192,9 @@
       </b-collapse>
     </div>
     <div class="card-section">
-      <div class="title" v-b-toggle.collapse-namespaces>Namespaces</div>
+      <div class="title" v-b-toggle.collapse-namespaces v-b-tooltip.hover.html="getHelper('namespaces')">
+        Namespaces
+      </div>
       <b-collapse id="collapse-namespaces" visible>
         <empty class="m-0 p-0" v-if="Object.entries(cwlObject.$namespaces).length === 0" text="No Namespaces" no-icon/>
         <b-row class="mt-2" v-for="nsPair in Object.entries(cwlObject.$namespaces)" :key="nsPair._key">
@@ -297,6 +292,9 @@ export default {
     versionValidator() {
       return this.cwlObject.cwlVersion !== undefined && this.cwlObject.cwlVersion.length > 0;
     },
+    contributorValidator(value) {
+      return value !== undefined && value?.length > 0;
+    }
   },
   computed: {
     person() {

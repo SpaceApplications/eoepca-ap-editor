@@ -17,8 +17,10 @@
         @onClose="closeModalForm"
       />
     </b-modal>
-    <div class="card-section" :data-v-step="`${pos}-clt-tour-9`">
-      <div class="title" v-b-toggle="`collapse-requirements-${pos}`">Requirements</div>
+    <div class="card-section" :id="`clt-requirements-${pos}`">
+      <div class="title" v-b-toggle="`collapse-requirements-${pos}`" v-b-tooltip.hover.html="getHelper('requirements')">
+        Requirements
+      </div>
       <b-collapse :id="`collapse-requirements-${pos}`" :visible="collapsedProp">
         <b-table
           :fields="requirementsTableFields"
