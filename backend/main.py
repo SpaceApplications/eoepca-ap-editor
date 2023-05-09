@@ -1,17 +1,22 @@
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
 import shutil
 
 app = FastAPI()
 
-# TODO make this an environment variable so it is configurable at deployment time
-FILE_SYSTEM_BASE_PATH = "/home/jla/Documents/EOEPCA/ap-editor/backend/testfiles/"
+
+FILE_SYSTEM_BASE_PATH = os.getenv(
+    "AP_EDITOR_FILES_DIRECTORY",
+    os.path.join(os.getcwd(), "files/")
+)
 
 # TODO This is only needed for development
 ALLOWED_ORIGINS = [
-    "http://localhost:8000"
+    "http://localhost:8080"
 ]
 
 app.add_middleware(
@@ -19,9 +24,22 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
 )
 
+class ApplicationVersion(BaseModel):
+    version: str
+    locked: bool
+    lastModified: int
+
+class ApplicationCWL(BaseModel):
+    cwl: str
+    version: str
+    locked: bool
+    lastModified: int
+
+class CWL(BaseModel):
+    cwl: str
 
 @app.get("/aps/")
-async def aps_list():
+async def list_application_packages() -> list[str]:
     ap_slugs = [
             f.path[len(FILE_SYSTEM_BASE_PATH):] # Splice to remove BASE_PATH
             for f in os.scandir(FILE_SYSTEM_BASE_PATH) if f.is_dir()
@@ -30,25 +48,54 @@ async def aps_list():
 
 
 @app.get("/aps/{ap_slug}/versions/")
-async def get_ap_versions(ap_slug):
+async def list_application_package_versions(ap_slug: str) -> list[ApplicationVersion]:
     ap_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug)
     if os.path.isdir(ap_path):
         versions =  [
-            f.path[len(ap_path)+1:] # Splice to remove BASE_PATH
+            f.path # Splice to remove BASE_PATH
             for f in os.scandir(ap_path) 
         ]
-        return versions
+        print(versions)
+        version_list = []
+        for v in versions:
+            locked = False
+            if v.endswith("__locked.cwl"):
+                v_slug = v[:-12]
+                locked = True
+            else:
+                v_slug = v[:-4]
+            version_list.append({
+                "version": v_slug[len(ap_path)+1:],
+                "locked": locked,
+                "lastModified": os.path.getmtime(v)
+            })
+     
+        return version_list
     raise HTTPException(status_code=404, detail="Application package with given slug not found")
 
 
 @app.get("/aps/{ap_slug}/versions/{version_slug}/")
-async def get_ap_version(ap_slug, version_slug):
+async def get_application_package_version(ap_slug: str, version_slug: str) -> ApplicationCWL:
     ap_version_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug, version_slug)
     # Check if an unlocked or locked version exist
     if os.path.exists(ap_version_path + ".cwl"):
-        return FileResponse(ap_version_path + ".cwl")
+        with open(ap_version_path + ".cwl", 'r') as cwl_file:
+            cwl = cwl_file.read()
+            return {
+                "cwl" : cwl,
+                "version": version_slug,
+                "locked": False,
+                "lastModified": os.path.getmtime(ap_version_path + ".cwl")
+            }
     if os.path.exists(ap_version_path + "__locked.cwl"):
-        return FileResponse(ap_version_path + "__locked.cwl")
+        with open(ap_version_path + "__locked.cwl", 'r') as cwl_file:
+            cwl = cwl_file.read()
+            return {
+                "cwl" : cwl,
+                "version": version_slug,
+                "locked": True,
+                "lastModified": os.path.getmtime(ap_version_path + "__locked.cwl")
+            }
     raise HTTPException(
         status_code=404,
         detail="Application package with given slug and version not found"
@@ -56,7 +103,7 @@ async def get_ap_version(ap_slug, version_slug):
 
 
 @app.put("/aps/{ap_slug}/versions/{version_slug}/", status_code=201)
-async def create_or_update_ap_version(ap_slug, version_slug, request: Request):
+async def create_or_update_application_package_version(ap_slug: str, version_slug: str, cwl: CWL):
     ap_path =  os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug)
     cwl_path = os.path.join(ap_path, version_slug)
     print(f"Path for new file: {cwl_path}")
@@ -72,17 +119,13 @@ async def create_or_update_ap_version(ap_slug, version_slug, request: Request):
     if not os.path.isdir(ap_path):
         os.mkdir(ap_path)
     
-    body = b''
-    # Read in the file
-    async for chunk in request.stream():
-        body += chunk 
     # Write it to disk
     with open(cwl_path + ".cwl", 'w') as cwl_file:
-        cwl_file.write(body.decode())
+        cwl_file.write(cwl.cwl)
 
 
 @app.patch("/aps/{ap_slug}/versions/{version_slug}/lock", status_code=204)
-async def lock_ap_version(ap_slug, version_slug):
+async def lock_application_package_version(ap_slug: str, version_slug: str) -> None:
     # Check if file exists
     cwl_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug, version_slug)
     if os.path.exists(cwl_path + "__locked.cwl"):
@@ -100,7 +143,7 @@ async def lock_ap_version(ap_slug, version_slug):
 
 
 @app.patch("/aps/{ap_slug}/versions/{version_slug}/unlock", status_code=204)
-async def unlock_ap_version(ap_slug, version_slug):
+async def unlock_application_package_version(ap_slug: str, version_slug: str) -> None:
     cwl_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug, version_slug)
 
     if os.path.exists(cwl_path + ".cwl"):
@@ -119,7 +162,7 @@ async def unlock_ap_version(ap_slug, version_slug):
 
 
 @app.delete("/aps/{ap_slug}/")
-async def delete_ap(ap_slug):
+async def delete_application_package(ap_slug: str) -> None:
     ap_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug)
     if not os.path.isdir(ap_path):
         raise HTTPException(
@@ -141,7 +184,7 @@ async def delete_ap(ap_slug):
 
 
 @app.delete("/aps/{ap_slug}/versions/{version_slug}/")
-async def delete_ap_version(ap_slug, version_slug):
+async def delete_application_package_version(ap_slug: str, version_slug: str) -> None:
     ap_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug)
     cwl_path =  os.path.join(ap_path, version_slug)
     if os.path.exists(cwl_path + "__locked.cwl"):
