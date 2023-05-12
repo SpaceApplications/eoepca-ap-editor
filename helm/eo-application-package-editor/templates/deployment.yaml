@@ -21,6 +21,13 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
+          volumeMounts:
+            - mountPath: /app/backend/files
+              name: files
+      volumes:
+        - name: files
+          persistentVolumeClaim:
+            claimName: files
       imagePullSecrets:
         - name: spaceapps-nexus
       restartPolicy: Always

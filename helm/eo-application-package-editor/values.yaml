@@ -4,6 +4,9 @@ docker:
   image_name: ap-editor
   image_tag: 2023-04-07a
 
+storage:
+  storageClassName: ""
+
 network:
   host: eoepca-testing.spaceapplications.com
 

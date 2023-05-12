@@ -22,7 +22,6 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 ARG PUID=2000
 ARG PGID=2000
 
-RUN mkdir files
 
 RUN addgroup --gid ${PGID} ap-editor && \
     adduser --system --uid ${PUID} --gid ${PGID} ap-editor && \

@@ -370,7 +370,8 @@ export default {
       ).catch(showApiErrorAsNotification);
     },
     openWsAppPackageNewWindow(apName, apVersion) {
-      this.openNewTab(`${this.locationHref}?apName=${apName}&apVersion=${apVersion}`);
+      const appPrefix = process.env.NODE_ENV === "production" ? "/ap-editor" : "";
+      this.openNewTab(`${this.locationHref}${appPrefix}/?apName=${apName}&apVersion=${apVersion}`);
     },
     closeApExplorer() {
       this.$refs['ws-manager-modal'].hide();

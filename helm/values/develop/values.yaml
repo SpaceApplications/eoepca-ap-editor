@@ -1,8 +1,11 @@
 docker:
   docker_config_json: ewoJImF1dGhzIjogewoJCSJuZXh1cy5zcGFjZWFwcGxpY2F0aW9ucy5jb20iOiB7CgkJCSJ1c2VybmFtZSI6ImFzYi1ydyIsCgkJCSJwYXNzd29yZCI6InZHV1lxR1o3c1FKUCIsCgkJCSJhdXRoIjogIllYTmlMWEozT25aSFYxbHhSMW8zYzFGS1VBPT0iCgkJfQoJfQp9Cg==
-  registry_prefix: nexus.spaceapplications.com/repository/docker-eoepca/
+  registry_prefix: 
   image_name: ap-editor
-  image_tag: 2023-04-07a
+  image_tag: jla-test
+
+storage:
+  storageClassName: standard
 
 network:
   host: 192.168.49.2.nip.io
