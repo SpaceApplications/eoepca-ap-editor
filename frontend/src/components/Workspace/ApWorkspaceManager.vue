@@ -40,6 +40,7 @@
     </b-breadcrumb>
     <b-list-group>
       <div class='list-group' v-if="viewMode==='appPackages'">
+        <empty class="m-0 p-0" v-if="applicationPackages?.length === 0" text="No Application packages" no-icon/>
         <b-list-group-item
           class="app-package-items"
           v-for="appPackage in applicationPackages" :key="appPackage._key"
@@ -140,9 +141,11 @@ import {
 } from "../../api";
 import _ from 'lodash';
 import {showApiErrorAsNotification} from "../../utils";
+import Empty from "../Shared/Empty";
 
 export default {
   name: "ApWorkspaceManager",
+  components: {Empty},
   mounted() {
     listApplicationPackages().then(
       wsApplicationPackages => this.applicationPackages = _.orderBy(wsApplicationPackages)

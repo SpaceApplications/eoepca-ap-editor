@@ -3,11 +3,13 @@
     <div class="form-content">
       <b-form-group label="Application Package Name:">
         <b-form-input v-model="appName" type="text" @keydown.space.prevent/>
-        <b-form-invalid-feedback :state="appNameValidator"> This field is required. </b-form-invalid-feedback>
+        <b-form-invalid-feedback :state="appNameValidator"> {{appNameValidatorFeedback}} </b-form-invalid-feedback>
       </b-form-group>
       <b-form-group label="Application Package Version:">
         <b-form-input v-model="appVersion" type="text" @keydown.space.prevent/>
-        <b-form-invalid-feedback :state="appVersionValidator"> This field is required. </b-form-invalid-feedback>
+        <b-form-invalid-feedback :state="appVersionValidator">
+          {{appVersionValidatorFeedback}}
+        </b-form-invalid-feedback>
       </b-form-group>
     </div>
     <div class="form-control-btn">
@@ -24,6 +26,8 @@
 </template>
 
 <script>
+const SpecialCharacters = new RegExp('[\\/<>=+*!@#$%^&}{()\\[\\]\'";:.,?~`]+');
+
 export default {
   name: "ApWorkspaceSaver",
   props: {
@@ -46,11 +50,26 @@ export default {
   },
   computed: {
     appNameValidator() {
-      return this.appName !== undefined && this.appName?.length > 0;
+      return this.appName !== undefined && this.appName?.length > 0
+        && !SpecialCharacters.test(this.appName);
     },
     appVersionValidator() {
-      return this.appVersion !== undefined && this.appVersion?.length > 0;
+      return this.appVersion !== undefined && this.appVersion?.length > 0
+        && !SpecialCharacters.test(this.appVersion)
+        && !this.appVersion?.endsWith('__locked');
     },
+    appNameValidatorFeedback() {
+      if (this.appVersion === undefined || this.appVersion?.length === 0) {
+        return 'This field is required.';
+      }
+      return 'Special Characters are not allowed.';
+    },
+    appVersionValidatorFeedback() {
+      if (this.appVersion === undefined || this.appVersion?.length === 0) {
+        return 'This field is required.';
+      }
+      return 'Special Characters are not allowed and version name cannot end with "__locked".';
+    }
   }
 };
 </script>

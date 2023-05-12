@@ -1,6 +1,6 @@
 import api from './shared/apiUtils';
 
-const ENV_PREFIX = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000';
+const ENV_PREFIX = process.env.NODE_ENV === 'production' ? 'api' : 'http://localhost:8000';
 
 export const urls = {
   applicationPackages: {
