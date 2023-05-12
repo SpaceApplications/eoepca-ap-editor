@@ -2,6 +2,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 from pydantic import BaseModel
 import os
 import shutil
@@ -22,6 +23,9 @@ ALLOWED_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class ApplicationVersion(BaseModel):
@@ -39,7 +43,7 @@ class CWL(BaseModel):
     cwl: str
 
 @app.get("/aps/")
-async def list_application_packages() -> list[str]:
+async def list_application_packages() -> List[str]:
     ap_slugs = [
             f.path[len(FILE_SYSTEM_BASE_PATH):] # Splice to remove BASE_PATH
             for f in os.scandir(FILE_SYSTEM_BASE_PATH) if f.is_dir()
@@ -48,7 +52,7 @@ async def list_application_packages() -> list[str]:
 
 
 @app.get("/aps/{ap_slug}/versions/")
-async def list_application_package_versions(ap_slug: str) -> list[ApplicationVersion]:
+async def list_application_package_versions(ap_slug: str) -> List[ApplicationVersion]:
     ap_path = os.path.join(FILE_SYSTEM_BASE_PATH, ap_slug)
     if os.path.isdir(ap_path):
         versions =  [

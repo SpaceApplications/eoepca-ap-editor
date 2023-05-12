@@ -1,5 +1,35 @@
 <template>
   <b-container fluid class="my-2 px-4">
+    <b-modal
+      @hide="closeApExplorer"
+      ref="ws-manager-modal"
+      title="Application Packages Manager"
+      align-h="end"
+      hide-footer
+      size="lg"
+    >
+      <ap-workspace-manager
+        @onClose="closeApExplorer"
+        @download="downloadFromWs"
+        @openAppPackage="loadWsAppPackage"
+        @openAppPackageNewTab="openWsAppPackageNewWindow"
+      />
+    </b-modal>
+    <b-modal
+      @hide="closeWorkspaceSaver"
+      ref="ws-save-modal"
+      title="Save in Workspace"
+      align-h="end"
+      hide-footer
+      size="lg"
+    >
+      <ap-workspace-saver
+        :appNameProp="appPackageName"
+        :appVersionProp="appPackageVersion"
+        @onClose="closeWorkspaceSaver"
+        @onSave="workspaceSave"
+      />
+    </b-modal>
     <v-tour name="clt-tour" :steps="steps" :callbacks="guidedTourCallbacks" ref="cltTour"/>
     <div :class="guidedTourRunning ? 'read-only' : ''">
       <page-title
@@ -35,18 +65,23 @@
               <div class="p-2">
                 <span style="font-weight: bold; font-size: 14px">Manuals & References</span>
                 <b-dropdown-item>
-                  User Manual
+                  User Manual (TBW)
                 </b-dropdown-item>
-                <b-dropdown-item @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html')">
-                  OGC Earth Observation Application Package
+                <b-dropdown-item @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html', $event)">
+                  OGC BP Earth Observation Application Package
                 </b-dropdown-item>
               </div>
               <div class="p-2">
                 <span style="font-weight: bold; font-size: 14px">Application Package Examples</span>
                 <b-dropdown-item
-                  v-for="example in examplesList" :key="example._key"
-                  @click="setCwlExample(example['filename'], example['url'])"
+                  v-for="(example, index) in examplesList" :key="example._key"
+                  @click="openNewTab(`${locationHref}?example=${index}`, $event)"
                 >
+                  <b-icon
+                    v-if="example['info']" icon="info-circle"
+                    variant="info" @click="openNewTab(example['info'], $event)"
+                    v-b-tooltip.hover="'Click to read more about this example.'"
+                  />
                   {{ example['label'] }}
                 </b-dropdown-item>
               </div>
@@ -70,12 +105,12 @@
             </div>
             <div class="m-1 pr-3 pl-3">
               <h6 align="center">Workspace</h6>
-              <b-btn variant="primary" @click="() => {console.log('Open from workspace action')}" class="mr-2" disabled>
-                <fa-icon class="mr-2" icon="folder-open"></fa-icon>
-                <span>Open</span>
+              <b-btn variant="primary" @click="showApExplorer" class="mr-2">
+                <fa-icon class="mr-2" icon="folder-open"/>
+                <span>Manage</span>
               </b-btn>
-              <b-btn variant="success" @click="() => {console.log('Save in workspace action')}" disabled>
-                <fa-icon class="mr-2" icon="save"></fa-icon>
+              <b-btn variant="success" @click="showWorkspaceSaver">
+                <fa-icon class="mr-2" icon="save"/>
                 <span>Save</span>
               </b-btn>
             </div>
@@ -86,7 +121,10 @@
                 <fa-icon class="mr-2" icon="upload"></fa-icon>
                 <span>Upload</span>
               </b-btn>
-              <b-btn variant="success" @click="downloadWrapper()">
+              <b-btn
+                variant="success"
+                @click="downloadWrapper($refs.processWrapper.$el.innerText, appPackageName, appPackageVersion)"
+              >
                 <fa-icon class="mr-2" icon="download"></fa-icon>
                 <span>Download</span>
               </b-btn>
@@ -102,7 +140,8 @@
                 Metadata
                 <b-icon
                   v-b-tooltip.hover="'Metadata Best Practice'"
-                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc31')"
+                  icon="info-circle" variant="info"
+                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc31', $event)"
                 />
               </template>
               <b-card header="Metadata" class="editor-card">
@@ -114,7 +153,8 @@
                 <span id="clt-tab-title">Command Line Tool</span>&nbsp;
                 <b-icon
                   v-b-tooltip.hover="'Command Line Tool Best Practice'"
-                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc27')"
+                  icon="info-circle" variant="info"
+                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc27', $event)"
                 />
               </template>
               <b-row class="m-2">
@@ -148,7 +188,8 @@
                 Workflow
                 <b-icon
                   v-b-tooltip.hover="'Workflow Best Practice'"
-                  icon="question-circle" @click="openNewTab($event, 'https://docs.ogc.org/bp/20-089r1.html#toc28')"
+                  icon="info-circle" variant="info"
+                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc28', $event)"
                 />
               </template>
               <b-card :header="workflow.id ? `Workflow: ${workflow.id}` : 'Workflow'" class="editor-card">
@@ -161,9 +202,11 @@
           <b-card class="cwl-template">
             <template v-slot:header>
               <b-row>
-                <b-col sm="1.0" style="display: flex; align-items: center">File Name:</b-col>
-                <b-col sm="6">
-                  <b-form-input :value="cwlFileName" type="text" @input="handleFileNameChange" @keydown.space.prevent/>
+                <b-col sm="7" style="display: flex; align-items: center">
+                  Name:&nbsp;<strong>{{ appPackageName }}</strong>
+                </b-col>
+                <b-col sm="5" style="display: flex; align-items: center">
+                  Version:&nbsp;<strong>{{ appPackageVersion }}</strong>
                 </b-col>
               </b-row>
             </template>
@@ -185,11 +228,21 @@ import {cwlValidator} from "../cwlObjectValidator";
 import MetadataEditor from "../components/metadata/MetadataEditor";
 import WorkflowEditor from "../components/Workflow/WorkflowEditor";
 import CommandLineToolEditor from "../components/CommandLinetool/CommandLineToolEditor";
-import {parseCwlObject, removeEmpty, showNotification, validateCwlConsistency} from "../utils";
+import ApWorkspaceManager from "../components/Workspace/ApWorkspaceManager";
+import ApWorkspaceSaver from "../components/Workspace/ApWorkspaceSaver";
+import {
+  getURLParam,
+  parseCwlObject,
+  removeEmpty,
+  showApiErrorAsNotification,
+  showNotification,
+  validateCwlConsistency
+} from "../utils";
 import {mapGetters} from "vuex";
 import {
   ADD_COMMAND_LINE_TOOL,
-  CHANGE_FILE_NAME,
+  CHANGE_APP_PACKAGE_NAME,
+  CHANGE_APP_PACKAGE_VERSION,
   REMOVE_COMMAND_LINE_TOOL, RESET_EDITOR,
   SET_CWL_OBJECT,
   SET_MODE
@@ -197,10 +250,20 @@ import {
 import {BIcon} from "bootstrap-vue";
 import {guidedTours, guidedToursCallbacks} from "../guidedTour";
 import examples from '../data/examples.json';
+import {createUpdateApplicationPackageVersion, getApplicationPackageVersion} from "../api";
 
 export default {
   name: "ApplicationPackageEditor",
-  components: {BIcon, MetadataEditor, WorkflowEditor, CommandLineToolEditor, ApplicationPackageCwlTemplate, PageTitle},
+  components: {
+    ApWorkspaceSaver,
+    ApWorkspaceManager,
+    BIcon,
+    MetadataEditor,
+    WorkflowEditor,
+    CommandLineToolEditor,
+    ApplicationPackageCwlTemplate,
+    PageTitle
+  },
   data() {
     return {
       guidedTourRunning: false,
@@ -210,6 +273,16 @@ export default {
       idx: undefined,
       currentTab: 0,
     };
+  },
+  mounted() {
+    const exampleIndex = getURLParam('example', undefined);
+    const apName = getURLParam('apName', undefined);
+    const apVersion = getURLParam('apVersion', undefined);
+    if (exampleIndex && exampleIndex < this.examplesList.length) {
+      this.setCwlExample(this.examplesList[exampleIndex]['name'], this.examplesList[exampleIndex]['url']);
+    } else if (apName && apVersion) {
+      this.loadWsAppPackage(apName, apVersion);
+    }
   },
   methods: {
     removeClt(clt) {
@@ -235,34 +308,21 @@ export default {
       if (event.target.files.length) {
         const file = event.target.files[0];
         const reader = new FileReader();
-        reader.onload = () => {
-          const yamlObject = this.yamlToObject(reader.result);
-          cwlValidator.validate(yamlObject, {strict: true}).then((validatedCwlObject) => {
-            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject));
-            this.$store.dispatch(CHANGE_FILE_NAME, file.name);
-            this.validateCwl();
-          }).catch((error) => {
-            showNotification('CWL Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
-            this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject));
-            this.$store.dispatch(CHANGE_FILE_NAME, file.name);
-            this.validateCwl();
-          });
-        };
+        const appName = file.name.replace('.cwl', '').replace('.CWL', '');
+        reader.onload = () => this.loadCwlFile(reader.result, appName);
         reader.onerror = () =>
           showNotification('File Error', {type: 'error', text: reader.error, duration: 5000, group: 'global'});
         reader.readAsText(file);
       }
       this.$refs.file.value = ''; // Clear the file to allow change detection when same file is re-uploaded
     },
-    downloadWrapper() {
-      let data = this.$refs.processWrapper.$el.innerText;
+    downloadWrapper(data, appName, appVersion) {
       let mimetype = "text/yaml";
       let blob = new Blob([data], {type: mimetype + ";charset=utf-8"});
-      saveAs(blob, this.cwlFileName);
-      return false;
+      saveAs(blob, `${appName}__${appVersion}.cwl`);
     },
-    handleFileNameChange(value) {
-      this.$store.dispatch(CHANGE_FILE_NAME, value);
+    handleAppPackageNameChange(value) {
+      this.$store.dispatch(CHANGE_APP_PACKAGE_NAME, value);
     },
     validateCwl() {
       const issues = validateCwlConsistency(this.nsPrefix, this.cwlObject);
@@ -281,8 +341,8 @@ export default {
       this.selectedGuidedTour = tourName;
       this.$tours['clt-tour'].start();
     },
-    openNewTab(event, href) {
-      event.preventDefault();
+    openNewTab(href, event = undefined) {
+      if (event) event.stopPropagation();
       window.open(href, '_blank');
     },
     setMode(mode) {
@@ -297,25 +357,70 @@ export default {
       });
     },
     setCwlExample(filename, url) {
-      this.$bvModal.msgBoxConfirm('All entered values will be lost, are you sure?').then(value => {
-        if (value) fetch(url).then(r => r.text()).then(fileContent => {
-            const yamlObject = this.yamlToObject(fileContent);
-            cwlValidator.validate(yamlObject, {strict: true}).then((validatedCwlObject) => {
-              this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject));
-              this.$store.dispatch(CHANGE_FILE_NAME, filename);
-              this.validateCwl();
-            }).catch((error) => {
-              showNotification('CWL Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
-              this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject));
-              this.$store.dispatch(CHANGE_FILE_NAME, filename);
-              this.validateCwl();
-            });
-          }
-        );
+      fetch(url).then(r => r.text()).then(fileContent => this.loadCwlFile(fileContent, filename));
+    },
+    loadWsAppPackage(apName, apVersion) {
+      getApplicationPackageVersion(apName, apVersion).then(
+        res => this.loadCwlFile(res.cwl, apName, apVersion)
+      ).catch(showApiErrorAsNotification);
+    },
+    downloadFromWs(appName, appVersion) {
+      getApplicationPackageVersion(appName, appVersion).then(
+        res => this.downloadWrapper(res.cwl, appName, appVersion)
+      ).catch(showApiErrorAsNotification);
+    },
+    openWsAppPackageNewWindow(apName, apVersion) {
+      this.openNewTab(`${this.locationHref}?apName=${apName}&apVersion=${apVersion}`);
+    },
+    closeApExplorer() {
+      this.$refs['ws-manager-modal'].hide();
+    },
+    closeWorkspaceSaver() {
+      this.$refs['ws-save-modal'].hide();
+    },
+    showApExplorer() {
+      this.$refs['ws-manager-modal'].show();
+    },
+    showWorkspaceSaver() {
+      this.$refs['ws-save-modal'].show();
+    },
+    loadCwlFile(fileContent, appName, appVersion = 'version_1') {
+      const yamlObject = this.yamlToObject(fileContent);
+      cwlValidator.validate(yamlObject, {strict: true}).then((validatedCwlObject) => {
+        this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(validatedCwlObject));
+        this.$store.dispatch(CHANGE_APP_PACKAGE_NAME, appName);
+        this.$store.dispatch(CHANGE_APP_PACKAGE_VERSION, appVersion);
+        this.validateCwl();
+      }).catch((error) => {
+        showNotification('CWL Validator', {type: 'error', text: error.message, duration: 5000, group: 'global'});
+        this.$store.dispatch(SET_CWL_OBJECT, parseCwlObject(yamlObject));
+        this.$store.dispatch(CHANGE_APP_PACKAGE_NAME, appName);
+        this.$store.dispatch(CHANGE_APP_PACKAGE_VERSION, appVersion);
+        this.validateCwl();
       });
+    },
+    workspaceSave(appName, appVersion) {
+      const payload = {cwl: this.$refs.processWrapper.$el.innerText};
+      createUpdateApplicationPackageVersion(appName, appVersion, payload).then(
+        () => {
+          this.$store.dispatch(CHANGE_APP_PACKAGE_NAME, appName);
+          this.$store.dispatch(CHANGE_APP_PACKAGE_VERSION, appVersion);
+          this.closeWorkspaceSaver();
+          showNotification('Saved in Workspace successfully.', {group: 'info', type: 'success'});
+        }
+      ).catch(showApiErrorAsNotification);
     }
   },
   computed: {
+    ...mapGetters({
+      cwlObject: 'cwlObject',
+      commandLineTools: 'commandLineTools',
+      workflow: 'workflow',
+      appPackageName: 'appPackageName',
+      appPackageVersion: 'appPackageVersion',
+      nsPrefix: 'nsPrefix',
+      mode: 'mode',
+    }),
     steps() {
       return guidedTours[this.selectedGuidedTour](this);
     },
@@ -325,19 +430,14 @@ export default {
     cleanedCwl() {
       return removeEmpty(this.cwlObject);
     },
-    ...mapGetters({
-      cwlObject: 'cwlObject',
-      commandLineTools: 'commandLineTools',
-      workflow: 'workflow',
-      cwlFileName: 'cwlFileName',
-      nsPrefix: 'nsPrefix',
-      mode: 'mode',
-    }),
     idxLastClt() {
       return this.commandLineTools.length - 1;
     },
     examplesList() {
       return examples;
+    },
+    locationHref() {
+      return window.location.origin;
     }
   }
 };
@@ -387,7 +487,6 @@ export default {
 }
 
 .cwl-template .card-header {
-  padding: 0.35rem 2rem !important;
 }
 
 .card-header {

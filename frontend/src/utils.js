@@ -268,3 +268,14 @@ export function waitForElm(selector) {
         });
     });
 }
+
+export const getURLParam = (param, default_) => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(param) || default_;
+};
+
+export const showApiErrorAsNotification = error => {
+  if (error.response.status >= 400) error.response.json().then(errObj =>
+    showNotification('Request Error', {type: 'error', text: errObj.detail, duration: 5000, group: 'global'})
+  );
+};

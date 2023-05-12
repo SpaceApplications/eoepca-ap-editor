@@ -20,7 +20,8 @@ Vue.use(Vuex);
 
 const initialEditorState = () => ({
   nsPrefix: DEFAULT_NS_PREFIX,
-  cwlFileName: 'application_package_template.cwl',
+  appPackageName: 'application_package_name',
+  appPackageVersion: 'version_1',
   cwlObject: {
     cwlVersion: 'v1.0',
     $graph: [
@@ -66,8 +67,11 @@ export const store = new Vuex.Store({
     cwlObject(state) {
       return state.cwlObject;
     },
-    cwlFileName(state) {
-      return state.cwlFileName;
+    appPackageName(state) {
+      return state.appPackageName;
+    },
+    appPackageVersion(state) {
+      return state.appPackageVersion;
     },
     nsPrefix(state) {
       return state.nsPrefix;
@@ -114,8 +118,11 @@ export const store = new Vuex.Store({
       Vue.set(state, 'nsPrefix',
         Object.entries(cwlObject.$namespaces).find(entry => entry[1] === DEFAULT_NAMESPACE)[0]);
     },
-    [mutationTypes.CHANGE_FILE_NAME](state, filename) {
-      state.cwlFileName = filename;
+    [mutationTypes.CHANGE_APP_PACKAGE_NAME](state, filename) {
+      state.appPackageName = filename;
+    },
+    [mutationTypes.CHANGE_APP_PACKAGE_VERSION](state, fileVersion) {
+      state.appPackageVersion = fileVersion;
     },
     [mutationTypes.CHANGE_NS_PREFIX](state, nsPrefix) {
       Vue.set(state.cwlObject, `${nsPrefix}:softwareVersion`, state.cwlObject[`${state.nsPrefix}:softwareVersion`]);
@@ -221,8 +228,11 @@ export const store = new Vuex.Store({
     [actionTypes.SET_CWL_OBJECT]({commit}, cwlObject) {
       commit(mutationTypes.SET_CWL_OBJECT, cwlObject);
     },
-    [actionTypes.CHANGE_FILE_NAME]({commit}, filename) {
-      commit(mutationTypes.CHANGE_FILE_NAME, filename);
+    [actionTypes.CHANGE_APP_PACKAGE_NAME]({commit}, filename) {
+      commit(mutationTypes.CHANGE_APP_PACKAGE_NAME, filename);
+    },
+    [actionTypes.CHANGE_APP_PACKAGE_VERSION]({commit}, fileVersion) {
+      commit(mutationTypes.CHANGE_APP_PACKAGE_VERSION, fileVersion);
     },
     [actionTypes.CHANGE_NS_PREFIX]({commit}, nsPrefix) {
       commit(mutationTypes.CHANGE_NS_PREFIX, nsPrefix);
