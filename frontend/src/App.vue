@@ -58,7 +58,6 @@
 
 <script>
 import ApplicationPackageEditor from "@/views/ApplicationPackageEditor";
-import axios from "axios";
 
 export default {
   name: "App",
@@ -69,7 +68,6 @@ export default {
     this.$watch(
       () => this.$refs.appPackageEditor?.guidedTourRunning, (n, o) => this.guidedTourRunning = n
     );
-    axios.get("http://localhost:8000/aps/");
   },
   data() {
     return {
