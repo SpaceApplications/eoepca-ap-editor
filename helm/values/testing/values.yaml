@@ -4,6 +4,9 @@ docker:
   image_name: ap-editor
   image_tag: latest
 
+storage:
+  storageClassName: managed-nfs-storage
+
 network:
   host: eoepca-testing.spaceapplications.com
 
