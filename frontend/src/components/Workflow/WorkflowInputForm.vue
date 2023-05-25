@@ -1,11 +1,11 @@
 <template>
   <b-form @submit.stop.prevent>
     <div class="form-content">
-      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
+      <b-form-group label="Identifier:" v-b-tooltip.hover.window.html="getHelper('paramIdentifier')">
         <b-form-input v-model="input.id" type="text" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramType')">
+      <b-form-group label="Type:" v-b-tooltip.hover.window.html="getHelper('paramType')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect
@@ -18,13 +18,13 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group label="Default:" v-b-tooltip.hover.html="getHelper('paramDefault')">
+      <b-form-group label="Default:" v-b-tooltip.hover.window.html="getHelper('paramDefault')">
         <b-form-input v-model="input.default" type="text"/>
       </b-form-group>
-      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
+      <b-form-group label="Label:" v-b-tooltip.hover.window.html="getHelper('label')">
         <b-form-input v-model="input.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
+      <b-form-group label="Description:" v-b-tooltip.hover.window.html="getHelper('description')">
         <b-form-textarea v-model="input.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>

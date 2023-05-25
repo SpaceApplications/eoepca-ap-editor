@@ -1,0 +1,14 @@
+site_name: Application Package Editor Documentation
+site_url: https://spaceapplications.github.io/eoepca-ap-editor/
+site_dir: public
+docs_dir: source
+
+nav:
+  - Home: index.md
+  - User Manual: user-manual/index.md
+
+extra_css:
+    - css/extra.css
+
+markdown_extensions:
+    - attr_list

@@ -13,16 +13,16 @@
         <b-icon
           @click="sort('asc', 'version')"
           class="ml-1 sorter" icon="sort-alpha-down" shift-v="-1.1"
-          v-b-tooltip.hover.html.left="'Alphabetical order'" font-scale="1.4"
+          v-b-tooltip.hover.window.html="'Alphabetical order'" font-scale="1.4"
         />
         <b-icon
           @click="sort('desc', 'version')"
           class="ml-1 sorter mr-3" icon="sort-alpha-down-alt" shift-v="-1.1"
-          v-b-tooltip.hover.html.left="'Reverse alphabetical order'" font-scale="1.4"
+          v-b-tooltip.hover.window.html="'Reverse alphabetical order'" font-scale="1.4"
         />
         <b-iconstack
           v-if="viewMode === 'appPackageVersions'"
-          font-scale="1.2" class="ml-2 sorter" v-b-tooltip.hover.html.left="'Date order'"
+          font-scale="1.2" class="ml-2 sorter" v-b-tooltip.hover.window.html="'Date order'"
           @click="sort('asc', 'lastModified')"
         >
           <b-icon stacked icon="arrow-down" shift-h="-8"/>
@@ -30,7 +30,7 @@
         </b-iconstack>
         <b-iconstack
           v-if="viewMode === 'appPackageVersions'"
-          font-scale="1.2" class="ml-1 sorter" v-b-tooltip.hover.html.left="'Reverse date order'"
+          font-scale="1.2" class="ml-1 sorter" v-b-tooltip.hover.window.html="'Reverse date order'"
           @click="sort('desc', 'lastModified')"
         >
           <b-icon stacked icon="arrow-up" shift-h="-8"/>
@@ -52,7 +52,7 @@
             </b-col>
             <b-col sm="1">
               <b-btn
-                size="sm" variant="danger" v-b-tooltip.hover.html.left="'Delete this application package.'"
+                size="sm" variant="danger" v-b-tooltip.hover.window.html="'Delete this application package.'"
                 @click="deleteAppPackage($event, appPackage)"
               >
                 <b-icon icon="trash-fill" shift-v="-1.2"/>
@@ -70,14 +70,14 @@
               <b-icon
                 class="ml-1"
                 v-if="appPackageVersion.locked" icon="lock-fill" shift-v="-1.1"
-                v-b-tooltip.hover.html.left="'This version is locked'"
+                v-b-tooltip.hover.window.html="'This version is locked'"
               />
             </b-col>
             <b-col sm="5">
-              <span v-b-tooltip.hover.html.left="'Version name'">{{ appPackageVersion.version }}</span>
+              <span v-b-tooltip.hover.window.html="'Version name'">{{ appPackageVersion.version }}</span>
             </b-col>
             <b-col sm="3">
-              <span v-b-tooltip.hover.html.left="'Last modification date'">
+              <span v-b-tooltip.hover.window.html="'Last modification date'">
                 {{ toHumanReadableDate(appPackageVersion.lastModified) }}
               </span>
             </b-col>
@@ -85,32 +85,32 @@
               <b-button-toolbar>
                 <b-button-group class="mr-1">
                   <b-btn
-                    size="sm" variant="success" v-b-tooltip.hover.html.left="'Download from Workspace'"
+                    size="sm" variant="success" v-b-tooltip.hover.window.html="'Download from Workspace'"
                     @click="$emit('download', selectedAp, appPackageVersion.version)"
                   >
                     <fa-icon icon="download"/>
                   </b-btn>
                   <b-btn
-                    size="sm" variant="primary" v-b-tooltip.hover.html.left="'Open Application Package'"
+                    size="sm" variant="primary" v-b-tooltip.hover.window.html="'Open Application Package'"
                     @click="open(selectedAp, appPackageVersion.version)"
                   >
                     <b-icon icon="box-arrow-in-up-right" shift-v="-1.2"/>
                   </b-btn>
                   <b-btn
-                    size="sm" variant="primary" v-b-tooltip.hover.html.left="'Open Application Package in new Window'"
+                    size="sm" variant="primary" v-b-tooltip.hover.window.html="'Open Application Package in new Window'"
                     @click="openNewWindow(selectedAp, appPackageVersion.version)"
                   >
                     <b-icon icon="box-arrow-up-right" shift-v="-1.2"/>
                   </b-btn>
                   <b-btn
                     size="sm" variant="primary"
-                    v-b-tooltip.hover.html.left="appPackageVersion.locked ? 'Unlock version' : 'Lock version'"
+                    v-b-tooltip.hover.window.html="appPackageVersion.locked ? 'Unlock version' : 'Lock version'"
                     @click="lockUnlock(appPackageVersion.version, appPackageVersion.locked)"
                   >
                     <b-icon :icon="appPackageVersion.locked ? 'unlock-fill' : 'lock-fill'" shift-v="-1.2"/>
                   </b-btn>
                   <b-btn
-                    size="sm" variant="danger" v-b-tooltip.hover.html.left="'Delete this version'"
+                    size="sm" variant="danger" v-b-tooltip.hover.window.html="'Delete this version'"
                     @click="deleteVersion(appPackageVersion.version)"
                   >
                     <b-icon icon="trash-fill" shift-v="-1.2"/>

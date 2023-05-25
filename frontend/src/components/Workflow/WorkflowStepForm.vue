@@ -1,19 +1,18 @@
 <template>
   <b-form @submit.stop.prevent>
-    <div class="form-content">
-
-      <b-form-group label="Command Line Tool" v-b-tooltip.hover.html="getHelper('paramRun')">
+    <div class="form-content" id="wfl-step-form">
+      <b-form-group label="Command Line Tool" v-b-tooltip.hover.window.html="getHelper('paramRun')">
         <multiselect
           :value="cltMap" :options="commandLineTools"
           label="id" @select="onCltSelect" @remove="removeClt"
           placeholder="Select a Command Line Tool..."
         />
       </b-form-group>
-      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
+      <b-form-group label="Identifier:" v-b-tooltip.hover.window.html="getHelper('paramIdentifier')">
         <b-form-input v-model="step.id" type="text" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group label="In:" v-b-tooltip.hover.html="getHelper('inputs')">
+      <b-form-group label="In:" v-b-tooltip.hover.window.html="getHelper('inputs')">
         <empty class="m-0 p-0" v-if="!step.in?.length" text="No Inputs" no-icon></empty>
         <b-row class="mt-2" v-for="input in step.in" :key="input._key">
           <b-col sm="5" class="center-text">
@@ -31,7 +30,7 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group label="Out:" v-b-tooltip.hover.html="getHelper('outputs')">
+      <b-form-group label="Out:" v-b-tooltip.hover.window.html="getHelper('outputs')">
         <b-form-input :value="step.out.join(', ')" type="text" disabled/>
       </b-form-group>
       <div v-if="mode==='advanced'">
@@ -41,14 +40,14 @@
         <b-form-group
           label="Scatter:"
           description="Note: you can add a list of input using ',' as a separator."
-          v-b-tooltip.hover.html="getHelper('paramScatter')"
+          v-b-tooltip.hover.window.html="getHelper('paramScatter')"
         >
           <b-form-input :value="scatterValue" @input="handleScatterChange" type="text"/>
         </b-form-group>
         <b-form-group
           label="Scatter Method:"
           description="Required if scatter is an array of more than one element."
-          v-b-tooltip.hover.html="getHelper('paramScatterMethod')"
+          v-b-tooltip.hover.window.html="getHelper('paramScatterMethod')"
         >
           <multiselect v-model="step.scatterMethod" :options="scatterMethodOptions"/>
           <b-form-invalid-feedback :state="scatterMethodValidator">
@@ -56,10 +55,10 @@
           </b-form-invalid-feedback>
         </b-form-group>
       </div>
-      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
+      <b-form-group label="Label:" v-b-tooltip.hover.window.html="getHelper('label')">
         <b-form-input v-model="step.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
+      <b-form-group label="Description:" v-b-tooltip.hover.window.html="getHelper('description')">
         <b-form-textarea v-model="step.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>
@@ -68,7 +67,7 @@
         <fa-icon class="mr-2" :icon="this.stepProp ? 'save' : 'plus'"/>
         <span>{{ this.stepProp ? 'Save' : 'Add' }}</span>
       </b-btn>
-      <b-btn @click="handleCancel">
+      <b-btn @click="handleCancel" id="wfl-step-modal-cancel-btn">
         <fa-icon class="mr-2" icon="times"/>
         <span>Cancel</span>
       </b-btn>

@@ -66,7 +66,11 @@ export default {
   },
   mounted() {
     this.$watch(
-      () => this.$refs.appPackageEditor?.guidedTourRunning, (n, o) => this.guidedTourRunning = n
+      () => this.$refs.appPackageEditor?.guidedTourRunning, (n, o) => {
+        this.guidedTourRunning = n;
+        if (n !== o) this.guidedTourRunning ?
+          document.body.classList.add('read-only') : document.body.classList.remove('read-only') ;
+      }
     );
   },
   data() {
@@ -146,5 +150,13 @@ body {
 .multiselect__tag {
   font-size: 100%;
   padding: 0.1rem 1.7rem 0.1rem 0.25rem;
+}
+
+.read-only {
+  pointer-events: none !important;
+}
+
+.read-only .modal-content {
+  pointer-events: none !important;
 }
 </style>

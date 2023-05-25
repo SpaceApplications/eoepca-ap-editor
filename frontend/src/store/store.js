@@ -95,6 +95,7 @@ export const store = new Vuex.Store({
     },
     [mutationTypes.RESET_EDITOR](state) {
       store.replaceState({mode: state.mode, ...initialEditorState()});
+      document.title = 'EO Application Package Editor';
     },
     [mutationTypes.ADD_COMMAND_LINE_TOOL](state) {
       state.cwlObject.$graph.push({
@@ -123,6 +124,7 @@ export const store = new Vuex.Store({
     },
     [mutationTypes.CHANGE_APP_PACKAGE_VERSION](state, fileVersion) {
       state.appPackageVersion = fileVersion;
+      document.title = `${state.appPackageName} - ${state.appPackageVersion}`;
     },
     [mutationTypes.CHANGE_NS_PREFIX](state, nsPrefix) {
       Vue.set(state.cwlObject, `${nsPrefix}:softwareVersion`, state.cwlObject[`${state.nsPrefix}:softwareVersion`]);

@@ -1,11 +1,11 @@
 <template>
   <b-form>
-    <div class="form-content">
-      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
+    <div class="form-content" id="clt-output-form">
+      <b-form-group label="Identifier:" v-b-tooltip.hover.window.html="getHelper('paramIdentifier')">
         <b-form-input v-model="output.id" type="text"/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramType')">
+      <b-form-group label="Type:" v-b-tooltip.hover.window.html="getHelper('paramType')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect v-model="output.type" :options="dataTypes"/>
@@ -19,18 +19,18 @@
         label="Format:"
         description="Note: you can add a list of format using ',' as a separator."
         v-if="output.type?.includes('File')"
-        v-b-tooltip.hover.html="getHelper('paramFormat')"
+        v-b-tooltip.hover.window.html="getHelper('paramFormat')"
       >
         <b-form-input :value="formatValue" @input="handleFormatChange" type="text"/>
       </b-form-group>
       <b-form-checkbox
         v-model="output.streamable" class="m-2" v-if="output.type?.includes('File')"
-        v-b-tooltip.hover.html="getHelper('paramStreamable')"
+        v-b-tooltip.hover.window.html="getHelper('paramStreamable')"
       >
         Streamable
       </b-form-checkbox>
       <div v-if="mode==='advanced'">
-        <b-form-group label="Output Binding:" v-b-tooltip.hover.html="getHelper('paramOutputBinding')">
+        <b-form-group label="Output Binding:" v-b-tooltip.hover.window.html="getHelper('paramOutputBinding')">
           <div class="composite-output">
             <b-form-group
               label-cols-sm="2.5"
@@ -47,10 +47,10 @@
             <b-form-checkbox :v-model="output.outputBinding?.loadContents">Load Contents</b-form-checkbox>
           </div>
         </b-form-group>
-        <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
+        <b-form-group label="Label:" v-b-tooltip.hover.window.html="getHelper('label')">
           <b-form-input v-model="output.label" type="text"/>
         </b-form-group>
-        <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
+        <b-form-group label="Description:" v-b-tooltip.hover.window.html="getHelper('description')">
           <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
         </b-form-group>
       </div>
@@ -60,7 +60,7 @@
         <fa-icon class="mr-2" :icon="this.outputProp ? 'save' : 'plus'"/>
         <span>{{ this.outputProp ? 'Save' : 'Add' }}</span>
       </b-btn>
-      <b-btn @click="handleCancel">
+      <b-btn @click="handleCancel" id="clt-output-modal-cancel-btn">
         <fa-icon class="mr-2" icon="times"/>
         <span>Cancel</span>
       </b-btn>

@@ -1,11 +1,11 @@
 <template>
   <b-form>
     <div class="form-content">
-      <b-form-group label="Identifier:" v-b-tooltip.hover.html="getHelper('paramIdentifier')">
+      <b-form-group label="Identifier:" v-b-tooltip.hover.window.html="getHelper('paramIdentifier')">
         <b-form-input v-model="output.id" type="text" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">{{ this.idValidatorFeedback }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group label="Type:" v-b-tooltip.hover.html="getHelper('paramDefault')">
+      <b-form-group label="Type:" v-b-tooltip.hover.window.html="getHelper('paramDefault')">
         <b-row align-v="center">
           <b-col sm="9">
             <multiselect :value="output.type" :options="dataTypes" @select="onTypeChange" @remove="remove"/>
@@ -15,11 +15,11 @@
           </b-col>
         </b-row>
       </b-form-group>
-      <b-form-group label="Output Source:" v-b-tooltip.hover.html="getHelper('paramOutputSource')">
+      <b-form-group label="Output Source:" v-b-tooltip.hover.window.html="getHelper('paramOutputSource')">
         <multiselect :value="outputSourceValue" :options="availableOutputs" label='id' @select="onOutputSourceSelect"/>
       </b-form-group>
       <div v-if="mode==='advanced'">
-        <b-form-group label="Output Binding:" v-b-tooltip.hover.html="getHelper('paramOutputBinding')">
+        <b-form-group label="Output Binding:" v-b-tooltip.hover.window.html="getHelper('paramOutputBinding')">
           <div class="composite-output">
             <b-form-group label-cols-sm="2.5" label="Glob:">
               <b-form-input :v-model="output.outputBinding?.glob" type="text" @keydown.space.prevent/>
@@ -31,10 +31,10 @@
           </div>
         </b-form-group>
       </div>
-      <b-form-group label="Label:" v-b-tooltip.hover.html="getHelper('label')">
+      <b-form-group label="Label:" v-b-tooltip.hover.window.html="getHelper('label')">
         <b-form-input v-model="output.label" type="text" @keydown.space.prevent/>
       </b-form-group>
-      <b-form-group label="Description:" v-b-tooltip.hover.html="getHelper('description')">
+      <b-form-group label="Description:" v-b-tooltip.hover.window.html="getHelper('description')">
         <b-form-textarea v-model="output.doc" rows="3" max-rows="6"/>
       </b-form-group>
     </div>

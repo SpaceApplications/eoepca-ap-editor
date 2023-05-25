@@ -31,190 +31,194 @@
       />
     </b-modal>
     <v-tour name="clt-tour" :steps="steps" :callbacks="guidedTourCallbacks" ref="cltTour"/>
-    <div :class="guidedTourRunning ? 'read-only' : ''">
-      <page-title
-        title="Application Package Editor"
-        subtitle="Interactive Earth Observation Application Package Editor"
-      >
-        <template v-slot:help>
-          <div>
-            <b-dropdown no-caret class="mr-3" menu-class="help-menu-dropdown" id="help-menu">
-              <template v-slot:button-content>
-                <b-icon
-                  icon="three-dots-vertical" v-b-tooltip.hover="'Help Menu'"
-                  style="height: 1.8rem; width: 1.8rem; color: white"
-                />
-              </template>
-              <b-dropdown-item
-                @click="showConfirmReset"
-              >
-                <b-icon icon="arrow-counterclockwise"/>
-                Reset Editor
-              </b-dropdown-item>
-              <div class="p-2">
-                <span style="font-weight: bold; font-size: 14px">Editor Mode</span>
-                <b-dropdown-item @click="setMode('simple')">
-                  <b-icon icon="check-circle" variant="success" v-if="mode === 'simple'"/>
-                  Simple
-                </b-dropdown-item>
-                <b-dropdown-item @click="setMode('advanced')">
-                  <b-icon icon="check-circle" variant="success" v-if="mode === 'advanced'"/>
-                  Advanced
-                </b-dropdown-item>
-              </div>
-              <div class="p-2">
-                <span style="font-weight: bold; font-size: 14px">Manuals & References</span>
-                <b-dropdown-item>
-                  User Manual (TBW)
-                </b-dropdown-item>
-                <b-dropdown-item @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html', $event)">
-                  OGC BP Earth Observation Application Package
-                </b-dropdown-item>
-              </div>
-              <div class="p-2">
-                <span style="font-weight: bold; font-size: 14px">Application Package Examples</span>
-                <b-dropdown-item
-                  v-for="(example, index) in examplesList" :key="example._key"
-                  @click="openNewTab(`${locationHref}?example=${index}`, $event)"
-                >
-                  <b-icon
-                    v-if="example['info']" icon="info-circle"
-                    variant="info" @click="openNewTab(example['info'], $event)"
-                    v-b-tooltip.hover="'Click to read more about this example.'"
-                  />
-                  {{ example['label'] }}
-                </b-dropdown-item>
-              </div>
-              <div class="p-2">
-                <span style="font-weight: bold; font-size: 14px">Guided Tours</span>
-                <b-dropdown-item @click="startGuidedTour('newProcessingTaskTour')">
-                  Creation of a new processing task (CommandLineTool)
-                </b-dropdown-item>
-              </div>
-            </b-dropdown>
-          </div>
-        </template>
-        <template v-slot:toolbar>
-          <b-btn-toolbar class="float-right">
-            <div class="m-1 pr-3 pl-3">
-              <h6 align="center">Helper</h6>
-              <b-btn variant="primary" @click="validateCwl()">
-                <fa-icon class="mr-2" icon="sync-alt"></fa-icon>
-                <span>Validate</span>
-              </b-btn>
-            </div>
-            <div class="m-1 pr-3 pl-3">
-              <h6 align="center">Workspace</h6>
-              <b-btn variant="primary" @click="showApExplorer" class="mr-2">
-                <fa-icon class="mr-2" icon="folder-open"/>
-                <span>Manage</span>
-              </b-btn>
-              <b-btn variant="success" @click="showWorkspaceSaver">
-                <fa-icon class="mr-2" icon="save"/>
-                <span>Save</span>
-              </b-btn>
-            </div>
-            <div class="m-1 pr-3 pl-3">
-              <h6 align="center">Transfer</h6>
-              <input ref="file" type="file" accept=".cwl" @change="onFileUpload" hidden/>
-              <b-btn variant="primary" @click="uploadFile()" class="mr-2">
-                <fa-icon class="mr-2" icon="upload"></fa-icon>
-                <span>Upload</span>
-              </b-btn>
-              <b-btn
-                variant="success"
-                @click="downloadWrapper($refs.processWrapper.$el.innerText, appPackageName, appPackageVersion)"
-              >
-                <fa-icon class="mr-2" icon="download"></fa-icon>
-                <span>Download</span>
-              </b-btn>
-            </div>
-          </b-btn-toolbar>
-        </template>
-      </page-title>
-      <b-row>
-        <b-col lg="12" xl="7">
-          <b-tabs content-class="mt-2" fill v-model="currentTab">
-            <b-tab :active="currentTab === 0">
-              <template v-slot:title>
-                Metadata
-                <b-icon
-                  v-b-tooltip.hover="'Metadata Best Practice'"
-                  icon="info-circle" variant="info"
-                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc31', $event)"
-                />
-              </template>
-              <b-card header="Metadata" class="editor-card">
-                <metadata-editor/>
-              </b-card>
-            </b-tab>
-            <b-tab :active="currentTab === 1">
-              <template slot="title">
-                <span id="clt-tab-title">Command Line Tool</span>&nbsp;
-                <b-icon
-                  v-b-tooltip.hover="'Command Line Tool Best Practice'"
-                  icon="info-circle" variant="info"
-                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc27', $event)"
-                />
-              </template>
-              <b-row class="m-2">
-                <b-col align="center">
-                  <b-btn
-                    id="clt-add-btn" class="add-btn" variant="primary" ref='addCltButton' @click="pushNewClt" size="sm"
-                  >
-                    <fa-icon icon="plus"></fa-icon>
-                    <span class="ml-2">Add Command Line Tool</span>
-                  </b-btn>
-                </b-col>
-              </b-row>
-              <div class="clt-list accordion">
-                <b-card v-for="(clt, index) in commandLineTools" :key="clt._key" class="mr-1">
-                  <template v-slot:header>
-                    <div v-b-toggle="`clt-accordion-${index}`" style="height: 44px; padding: 10px">
-                      {{ clt.id ? `Command Line Tool: ${clt.id}` : 'Command Line Tool' }}
-                      <b-btn class="float-right" variant="danger" size="sm" @click.stop="removeClt(clt)">
-                        <fa-icon icon="times"/>
-                      </b-btn>
-                    </div>
-                  </template>
-                  <b-collapse :id="`clt-accordion-${index}`" accordion="clts-accordion" visible>
-                    <command-line-tool-editor :command-line-tool-prop="clt" :pos="index"/>
-                  </b-collapse>
-                </b-card>
-              </div>
-            </b-tab>
-            <b-tab :active="currentTab === 2">
-              <template v-slot:title>
-                Workflow
-                <b-icon
-                  v-b-tooltip.hover="'Workflow Best Practice'"
-                  icon="info-circle" variant="info"
-                  @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc28', $event)"
-                />
-              </template>
-              <b-card :header="workflow.id ? `Workflow: ${workflow.id}` : 'Workflow'" class="editor-card">
-                <workflow-editor/>
-              </b-card>
-            </b-tab>
-          </b-tabs>
-        </b-col>
-        <b-col lg="12" xl="5">
-          <b-card class="cwl-template">
-            <template v-slot:header>
-              <b-row>
-                <b-col sm="7" style="display: flex; align-items: center">
-                  Name:&nbsp;<strong>{{ appPackageName }}</strong>
-                </b-col>
-                <b-col sm="5" style="display: flex; align-items: center">
-                  Version:&nbsp;<strong>{{ appPackageVersion }}</strong>
-                </b-col>
-              </b-row>
+    <page-title
+      title="Application Package Editor"
+      subtitle="Interactive Earth Observation Application Package Editor"
+    >
+      <template v-slot:help>
+        <div>
+          <b-dropdown no-caret class="mr-3" menu-class="help-menu-dropdown" id="help-menu">
+            <template v-slot:button-content>
+              <b-icon
+                icon="three-dots-vertical" v-b-tooltip.hover.window="'Help Menu'"
+                style="height: 1.8rem; width: 1.8rem; color: white"
+              />
             </template>
-            <ApplicationPackageCwlTemplate :cwlObject="cleanedCwl" ref="processWrapper"/>
-          </b-card>
-        </b-col>
-      </b-row>
-    </div>
+            <b-dropdown-item
+              @click="showConfirmReset"
+            >
+              <b-icon icon="arrow-counterclockwise"/>
+              Reset Editor
+            </b-dropdown-item>
+            <div class="p-2">
+              <span style="font-weight: bold; font-size: 14px">Editor Mode</span>
+              <b-dropdown-item @click="setMode('simple')">
+                <b-icon icon="check-circle" variant="success" v-if="mode === 'simple'"/>
+                Simple
+              </b-dropdown-item>
+              <b-dropdown-item @click="setMode('advanced')">
+                <b-icon icon="check-circle" variant="success" v-if="mode === 'advanced'"/>
+                Advanced
+              </b-dropdown-item>
+            </div>
+            <div class="p-2">
+              <span style="font-weight: bold; font-size: 14px">Manuals & References</span>
+              <b-dropdown-item>
+                User Manual (TBW)
+              </b-dropdown-item>
+              <b-dropdown-item @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html', $event)">
+                OGC BP Earth Observation Application Package
+              </b-dropdown-item>
+            </div>
+            <div class="p-2">
+              <span style="font-weight: bold; font-size: 14px">Application Package Examples</span>
+              <b-dropdown-item
+                v-for="(example, index) in examplesList" :key="example._key"
+                @click="openNewTab(`${locationHref}?example=${index}`, $event)"
+              >
+                <b-icon
+                  v-if="example['info']" icon="info-circle"
+                  variant="info" @click="openNewTab(example['info'], $event)"
+                  v-b-tooltip.hover.window="'Click to read more about this example.'"
+                />
+                {{ example['label'] }}
+              </b-dropdown-item>
+            </div>
+            <div class="p-2">
+              <span style="font-weight: bold; font-size: 14px">Guided Tours</span>
+              <b-dropdown-item @click="startGuidedTour('applicationPackageMetadata')">
+                1. Application Package Information (Metadata)
+              </b-dropdown-item>
+              <b-dropdown-item @click="startGuidedTour('newProcessingTaskTour')">
+                2. Creation of a new Command Line Tool (Processing Task)
+              </b-dropdown-item>
+              <b-dropdown-item @click="startGuidedTour('processingTaskWorkflowIntegration')">
+                3. Command Line Tool Workflow Integration (Workflow)
+              </b-dropdown-item>
+            </div>
+          </b-dropdown>
+        </div>
+      </template>
+      <template v-slot:toolbar>
+        <b-btn-toolbar class="float-right">
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Helper</h6>
+            <b-btn variant="primary" @click="validateCwl()">
+              <fa-icon class="mr-2" icon="sync-alt"></fa-icon>
+              <span>Validate</span>
+            </b-btn>
+          </div>
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Workspace</h6>
+            <b-btn variant="primary" @click="showApExplorer" class="mr-2">
+              <fa-icon class="mr-2" icon="folder-open"/>
+              <span>Manage</span>
+            </b-btn>
+            <b-btn variant="success" @click="showWorkspaceSaver">
+              <fa-icon class="mr-2" icon="save"/>
+              <span>Save</span>
+            </b-btn>
+          </div>
+          <div class="m-1 pr-3 pl-3">
+            <h6 align="center">Local Transfer</h6>
+            <input ref="file" type="file" accept=".cwl" @change="onFileUpload" hidden/>
+            <b-btn variant="primary" @click="uploadFile()" class="mr-2">
+              <fa-icon class="mr-2" icon="upload"></fa-icon>
+              <span>Upload</span>
+            </b-btn>
+            <b-btn
+              variant="success"
+              @click="downloadWrapper($refs.processWrapper.$el.innerText, appPackageName, appPackageVersion)"
+            >
+              <fa-icon class="mr-2" icon="download"></fa-icon>
+              <span>Download</span>
+            </b-btn>
+          </div>
+        </b-btn-toolbar>
+      </template>
+    </page-title>
+    <b-row>
+      <b-col lg="12" xl="7">
+        <b-tabs content-class="mt-2" fill v-model="currentTab">
+          <b-tab :active="currentTab === 0">
+            <template v-slot:title>
+              <span id="meta-tab-title">Metadata</span>&nbsp;
+              <b-icon
+                v-b-tooltip.hover.window="'Metadata Best Practice'"
+                icon="info-circle" variant="info"
+                @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc31', $event)"
+              />
+            </template>
+            <b-card header="Metadata" class="editor-card">
+              <metadata-editor/>
+            </b-card>
+          </b-tab>
+          <b-tab :active="currentTab === 1">
+            <template slot="title">
+              <span id="clt-tab-title">Command Line Tool</span>&nbsp;
+              <b-icon
+                v-b-tooltip.hover.window="'Command Line Tool Best Practice'"
+                icon="info-circle" variant="info"
+                @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc27', $event)"
+              />
+            </template>
+            <b-row class="m-2">
+              <b-col align="center">
+                <b-btn
+                  id="clt-add-btn" class="add-btn" variant="primary" ref='addCltButton' @click="pushNewClt" size="sm"
+                >
+                  <fa-icon icon="plus"></fa-icon>
+                  <span class="ml-2">Add Command Line Tool</span>
+                </b-btn>
+              </b-col>
+            </b-row>
+            <div class="clt-list accordion">
+              <b-card v-for="(clt, index) in commandLineTools" :key="clt._key" class="mr-1">
+                <template v-slot:header>
+                  <div v-b-toggle="`clt-accordion-${index}`" style="height: 44px; padding: 10px">
+                    {{ clt.id ? `Command Line Tool: ${clt.id}` : 'Command Line Tool' }}
+                    <b-btn class="float-right" variant="danger" size="sm" @click.stop="removeClt(clt)">
+                      <fa-icon icon="times"/>
+                    </b-btn>
+                  </div>
+                </template>
+                <b-collapse :id="`clt-accordion-${index}`" accordion="clts-accordion" visible>
+                  <command-line-tool-editor :command-line-tool-prop="clt" :pos="index"/>
+                </b-collapse>
+              </b-card>
+            </div>
+          </b-tab>
+          <b-tab :active="currentTab === 2">
+            <template v-slot:title>
+              <span id="wfl-tab-title">Workflow</span>&nbsp;
+              <b-icon
+                v-b-tooltip.hover.window="'Workflow Best Practice'"
+                icon="info-circle" variant="info"
+                @click="openNewTab('https://docs.ogc.org/bp/20-089r1.html#toc28', $event)"
+              />
+            </template>
+            <b-card :header="workflow.id ? `Workflow: ${workflow.id}` : 'Workflow'" class="editor-card">
+              <workflow-editor/>
+            </b-card>
+          </b-tab>
+        </b-tabs>
+      </b-col>
+      <b-col lg="12" xl="5">
+        <b-card class="cwl-template">
+          <template v-slot:header>
+            <b-row>
+              <b-col sm="7" style="display: flex; align-items: center">
+                Name:&nbsp;<strong>{{ appPackageName }}</strong>
+              </b-col>
+              <b-col sm="5" style="display: flex; align-items: center">
+                Version:&nbsp;<strong>{{ appPackageVersion }}</strong>
+              </b-col>
+            </b-row>
+          </template>
+          <ApplicationPackageCwlTemplate :cwlObject="cleanedCwl" ref="processWrapper"/>
+        </b-card>
+      </b-col>
+    </b-row>
   </b-container>
 </template>
 
@@ -370,8 +374,7 @@ export default {
       ).catch(showApiErrorAsNotification);
     },
     openWsAppPackageNewWindow(apName, apVersion) {
-      const appPrefix = process.env.NODE_ENV === "production" ? "/ap-editor" : "";
-      this.openNewTab(`${this.locationHref}${appPrefix}/?apName=${apName}&apVersion=${apVersion}`);
+      this.openNewTab(`${this.locationHref}/?apName=${apName}&apVersion=${apVersion}`);
     },
     closeApExplorer() {
       this.$refs['ws-manager-modal'].hide();
@@ -438,8 +441,9 @@ export default {
       return examples;
     },
     locationHref() {
-      return window.location.origin;
-    }
+      const appPrefix = process.env.NODE_ENV === "production" ? "/ap-editor" : "";
+      return `${window.location.origin}${appPrefix}`;
+    },
   }
 };
 </script>

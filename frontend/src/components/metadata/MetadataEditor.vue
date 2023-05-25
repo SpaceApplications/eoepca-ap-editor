@@ -1,57 +1,59 @@
 <template>
   <div>
-    <b-row class="mb-1">
-      <b-col sm="2" v-b-tooltip.hover.html="getHelper('cwlVersion')">
-        <h6>CWL Version</h6>
-        <b-form-input type="text" v-model="cwlObject.cwlVersion" @keydown.space.prevent/>
-        <b-form-invalid-feedback :state="versionValidator()">This field is required</b-form-invalid-feedback>
-      </b-col>
-      <b-col sm="2" v-b-tooltip.hover.html="getHelper('dateCreated')">
-        <h6>Creation Date</h6>
-        <b-form-input type="date" v-model="cwlObject[`${nsPrefix}:dateCreated`]"/>
-      </b-col>
-      <b-col sm="2" v-b-tooltip.hover.html="getHelper('softwareVersion')">
-        <h6>Software Version</h6>
-        <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:softwareVersion`]" @keydown.space.prevent/>
-      </b-col>
-      <b-col sm="6" v-b-tooltip.hover.html="getHelper('keywords')">
-        <h6>Keywords</h6>
-        <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:keywords`]"/>
-      </b-col>
-    </b-row>
-    <b-row class="mb-1 mt-3">
-      <b-col sm="6" v-b-tooltip.hover.html="getHelper('codeRepository')">
-        <h6>Code Repository (URL)</h6>
-        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:codeRepository`]" @keydown.space.prevent/>
-      </b-col>
-      <b-col sm="6" v-b-tooltip.hover.html="getHelper('license')">
-        <h6>License (URL)</h6>
-        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:license`]"/>
-      </b-col>
-    </b-row>
-    <b-row class="mb-1 mt-3">
-      <b-col sm="6" v-b-tooltip.hover.html="getHelper('releaseNotes')">
-        <h6>Release Notes (URL)</h6>
-        <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:releaseNotes`]"/>
-      </b-col>
-      <b-col sm="6" v-b-tooltip.hover.html="getHelper('logo')">
-        <h6>Logo (URL)</h6>
-        <b-row>
-        <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 10 : 12">
-          <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:logo`]"/>
+    <div id="ap-meta-information">
+      <b-row class="mb-1">
+        <b-col sm="2" v-b-tooltip.hover.window.html="getHelper('cwlVersion')">
+          <h6>CWL Version</h6>
+          <b-form-input type="text" v-model="cwlObject.cwlVersion" @keydown.space.prevent/>
+          <b-form-invalid-feedback :state="versionValidator()">This field is required</b-form-invalid-feedback>
         </b-col>
-        <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 2 : 0">
-          <img
-            v-if="cwlObject[`${nsPrefix}:logo`]"
-            :src="cwlObject[`${nsPrefix}:logo`]"
-            alt="Logo Image" style="width: 60px"
-          />
+        <b-col sm="2" v-b-tooltip.hover.window.html="getHelper('dateCreated')">
+          <h6>Creation Date</h6>
+          <b-form-input type="date" v-model="cwlObject[`${nsPrefix}:dateCreated`]"/>
         </b-col>
+        <b-col sm="2" v-b-tooltip.hover.window.html="getHelper('softwareVersion')">
+          <h6>Software Version</h6>
+          <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:softwareVersion`]" @keydown.space.prevent/>
+        </b-col>
+        <b-col sm="6" v-b-tooltip.hover.window.html="getHelper('keywords')">
+          <h6>Keywords</h6>
+          <b-form-input type="text" v-model="cwlObject[`${nsPrefix}:keywords`]"/>
+        </b-col>
+      </b-row>
+      <b-row class="mb-1 mt-3">
+        <b-col sm="6" v-b-tooltip.hover.window.html="getHelper('codeRepository')">
+          <h6>Code Repository (URL)</h6>
+          <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:codeRepository`]" @keydown.space.prevent/>
+        </b-col>
+        <b-col sm="6" v-b-tooltip.hover.window.html="getHelper('license')">
+          <h6>License (URL)</h6>
+          <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:license`]"/>
+        </b-col>
+      </b-row>
+      <b-row class="mb-1 mt-3">
+        <b-col sm="6" v-b-tooltip.hover.window.html="getHelper('releaseNotes')">
+          <h6>Release Notes (URL)</h6>
+          <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:releaseNotes`]"/>
+        </b-col>
+        <b-col sm="6" v-b-tooltip.hover.window.html="getHelper('logo')">
+          <h6>Logo (URL)</h6>
+          <b-row>
+            <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 10 : 12">
+              <b-form-input type="url" v-model="cwlObject[`${nsPrefix}:logo`]"/>
+            </b-col>
+            <b-col :sm="cwlObject[`${nsPrefix}:logo`] ? 2 : 0">
+              <img
+                v-if="cwlObject[`${nsPrefix}:logo`]"
+                :src="cwlObject[`${nsPrefix}:logo`]"
+                alt="Logo Image" style="width: 60px"
+              />
+            </b-col>
           </b-row>
-      </b-col>
-    </b-row>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-authors v-b-tooltip.hover.html="getHelper('authors')">Authors</div>
+        </b-col>
+      </b-row>
+    </div>
+    <div class="card-section" id="ap-meta-authors">
+      <div class="title" v-b-toggle.collapse-authors v-b-tooltip.hover.window.html="getHelper('authors')">Authors</div>
       <b-collapse id="collapse-authors" visible>
         <empty class="m-0 p-0" v-if="authors?.length === 0" text="No Authors" no-icon></empty>
         <b-row class="mt-2" v-for="(author, index) in authors" :key="author._key">
@@ -98,8 +100,8 @@
         </b-row>
       </b-collapse>
     </div>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-contributors v-b-tooltip.hover.html="getHelper('contributors')">
+    <div class="card-section" id="ap-meta-contributors">
+      <div class="title" v-b-toggle.collapse-contributors v-b-tooltip.hover.window.html="getHelper('contributors')">
         Contributors
       </div>
       <b-collapse id="collapse-contributors" visible>
@@ -157,8 +159,8 @@
         </b-row>
       </b-collapse>
     </div>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-schemas v-b-tooltip.hover.html="getHelper('schemas')">Schemas</div>
+    <div class="card-section" id="ap-meta-schemas">
+      <div class="title" v-b-toggle.collapse-schemas v-b-tooltip.hover.window.html="getHelper('schemas')">Schemas</div>
       <b-collapse id="collapse-schemas" visible>
         <empty class="m-0 p-0" v-if="schemas?.length === 0" text="No Schemas" no-icon></empty>
         <b-row class="mt-2" v-for="(schema, index) in schemas" :key="schema._key">
@@ -191,8 +193,8 @@
         </b-row>
       </b-collapse>
     </div>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-namespaces v-b-tooltip.hover.html="getHelper('namespaces')">
+    <div class="card-section" id="ap-meta-namespaces">
+      <div class="title" v-b-toggle.collapse-namespaces v-b-tooltip.hover.window.html="getHelper('namespaces')">
         Namespaces
       </div>
       <b-collapse id="collapse-namespaces" visible>

@@ -1,4 +1,4 @@
-# cwl-application-editor
+# EOEPCA Application Package Editor
 
 ## Project setup
 ```

@@ -35,28 +35,28 @@
       />
     </b-modal>
     <b-row class="mb-1">
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('class')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('class')">
         <h6>Class</h6>
         <b-form-input type="text" :disabled="true" v-model="workflow.class"/>
       </b-col>
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('identifier')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('identifier')">
         <h6>Identifier</h6>
         <b-form-input type="text" v-model="workflow.id" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">
           {{ this.idValidatorFeedback }}
         </b-form-invalid-feedback>
       </b-col>
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('label')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('label')">
         <h6>Label</h6>
         <b-form-input type="text" v-model="workflow.label" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('description')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('description')">
         <h6>Description</h6>
         <b-form-input type="text" v-model="workflow.doc"/>
       </b-col>
     </b-row>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-inputs v-b-tooltip.hover.html="getHelper('inputs')">
+    <div class="card-section" id="wfl-inputs">
+      <div class="title" v-b-toggle.collapse-inputs v-b-tooltip.hover.window.html="getHelper('inputs')">
         Inputs
       </div>
       <b-collapse id="collapse-inputs" visible>
@@ -89,8 +89,8 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section">
-      <div class="title" v-b-toggle.collapse-outputs v-b-tooltip.hover.html="getHelper('outputs')">
+    <div class="card-section" id="wfl-outputs">
+      <div class="title" v-b-toggle.collapse-outputs v-b-tooltip.hover.window.html="getHelper('outputs')">
         Outputs
       </div>
       <b-collapse id="collapse-outputs" visible>
@@ -98,7 +98,7 @@
           <template #cell(outputSource)="data">
             <b-icon
               v-if="!data.item.outputSource?.length" icon="exclamation-circle-fill"
-              variant="warning" v-b-tooltip.hover.v-warning="'Output has no configured source.'"
+              variant="warning" v-b-tooltip.hover.window.v-warning="'Output has no configured source.'"
             />
             {{ data.item.outputSource?.join(', ') }}
           </template>
@@ -130,8 +130,8 @@
         </div>
       </b-collapse>
     </div>
-    <div class="card-section" id="wfl-steps-card">
-      <div class="title" v-b-toggle.collapse-steps v-b-tooltip.hover.html="getHelper('steps')">
+    <div class="card-section" id="wfl-steps">
+      <div class="title" v-b-toggle.collapse-steps v-b-tooltip.hover.window.html="getHelper('steps')">
         Steps
       </div>
       <b-collapse id="collapse-steps" visible>
@@ -139,7 +139,7 @@
           <template #cell(run)="data">
             <b-icon
               v-if="!data.item.run" icon="exclamation-circle-fill"
-              variant="warning" v-b-tooltip.hover.v-warning="'Step has no configured command line tool.'"
+              variant="warning" v-b-tooltip.hover.window.v-warning="'Step has no configured command line tool.'"
             />
             {{ data.item.run?.replace('#', '') }}
           </template>
@@ -148,7 +148,7 @@
               <li v-for="input in data.item.in" :key="input._key">
                 <b-icon
                   v-if="!input.source?.length" icon="exclamation-circle-fill"
-                  variant="danger" v-b-tooltip.hover.v-danger="'Input has no configured source.'"
+                  variant="danger" v-b-tooltip.hover.window.v-danger="'Input has no configured source.'"
                 />
                 {{ `id: ${input.id || '-'}, source: ${input.source?.length ? input.source : '-'}` }}
               </li>
@@ -178,6 +178,7 @@
             variant="outline-success"
             @click="showModalForm('Workflow Step')"
             size="sm"
+            id="wfl-add-step-btn"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add Step</span>

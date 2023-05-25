@@ -34,28 +34,28 @@
       />
     </b-modal>
     <b-row class="mb-1">
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('class')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('class')">
         <h6>Class</h6>
         <b-form-input type="text" :disabled="true" v-model="commandLineTool.class"/>
       </b-col>
-      <b-col sm="3" :id="`clt-id-${pos}`" v-b-tooltip.hover.html="getHelper('identifier')">
+      <b-col sm="3" :id="`clt-id-${pos}`" v-b-tooltip.hover.window.html="getHelper('identifier')">
         <h6>Identifier</h6>
         <b-form-input type="text" :value="commandLineTool.id" @input="handleIdChange" @keydown.space.prevent/>
         <b-form-invalid-feedback :state="idValidator">
           {{ this.idValidatorFeedback }}
         </b-form-invalid-feedback>
       </b-col>
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('label')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('label')">
         <h6>Label</h6>
         <b-form-input type="text" v-model="commandLineTool.label" @keydown.space.prevent/>
       </b-col>
-      <b-col sm="3" v-b-tooltip.hover.html="getHelper('description')">
+      <b-col sm="3" v-b-tooltip.hover.window.html="getHelper('description')">
         <h6>Description</h6>
         <b-form-input type="text" v-model="commandLineTool.doc"/>
       </b-col>
     </b-row>
     <b-row class="mt-2">
-      <b-col sm="6" :id="`clt-exec-${pos}`" v-b-tooltip.hover.html="getHelper('baseCommand')">
+      <b-col sm="6" :id="`clt-exec-${pos}`" v-b-tooltip.hover.window.html="getHelper('baseCommand')">
         <b-form-group label="Base Command:">
           <empty class="m-0 p-0" v-if="commandLineTool.baseCommand?.length === 0" text="No Commands" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -96,7 +96,7 @@
           </div>
         </b-form-group>
       </b-col>
-      <b-col sm="6" :id="`clt-args-${pos}`" v-b-tooltip.hover.html="getHelper('arguments')">
+      <b-col sm="6" :id="`clt-args-${pos}`" v-b-tooltip.hover.window.html="getHelper('arguments')">
         <b-form-group label="Arguments:">
           <empty class="m-0 p-0" v-if="commandLineTool.arguments?.length === 0" text="No Arguments" no-icon/>
           <div class="p-1" style="max-height: 175px; overflow-y: auto; overflow-x: hidden">
@@ -141,7 +141,7 @@
       </b-col>
     </b-row>
     <div class="card-section">
-      <div class="title" v-b-toggle="`collapse-inputs-${pos}`" v-b-tooltip.hover.html="getHelper('inputs')">
+      <div class="title" v-b-toggle="`collapse-inputs-${pos}`" v-b-tooltip.hover.window.html="getHelper('inputs')">
         Inputs
       </div>
       <b-collapse :id="`collapse-inputs-${pos}`" visible>
@@ -174,7 +174,7 @@
       </b-collapse>
     </div>
     <div class="card-section" :id="`clt-outputs-${pos}`">
-      <div class="title" v-b-toggle="`collapse-outputs-${pos}`" v-b-tooltip.hover.html="getHelper('outputs')">
+      <div class="title" v-b-toggle="`collapse-outputs-${pos}`" v-b-tooltip.hover.window.html="getHelper('outputs')">
         Outputs
       </div>
       <b-collapse :id="`collapse-outputs-${pos}`" visible>
@@ -200,6 +200,7 @@
             variant="outline-success"
             @click="showModalForm('CommandLineTool Output')"
             size="sm"
+            :id="`clt-output-modal-btn-${pos}`"
           >
             <fa-icon icon="plus"></fa-icon>
             <span class="ml-2">Add output</span>
