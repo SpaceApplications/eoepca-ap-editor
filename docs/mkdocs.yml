@@ -2,6 +2,8 @@ site_name: Application Package Editor Documentation
 site_url: https://spaceapplications.github.io/eoepca-ap-editor/
 site_dir: public
 docs_dir: source
+repo_name: 'SpaceApplications/eoepca-ap-editor'
+repo_url: 'https://github.com/SpaceApplications/eoepca-ap-editor'
 
 nav:
   - Home: index.md
@@ -10,5 +12,22 @@ nav:
 extra_css:
     - css/extra.css
 
+theme:
+  name: material
+  navigation_depth: 4
+  logo: img/favicon.ico
+  favicon: img/favicon.ico
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+
 markdown_extensions:
     - attr_list
+
+extra:
+  version:
+    provider: mike
+    default: latest

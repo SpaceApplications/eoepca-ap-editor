@@ -2,7 +2,7 @@
 
 **Abstract**
 
-This document is the EO Application Package Editor User Guide. Its
+This document is the EO Application Package Editor User Manual. Its
 purpose is to describe the features and the capabilities supported by
 the Application Package Editor in order to make it easy to get started
 with it.
