@@ -8,6 +8,7 @@ repo_url: 'https://github.com/SpaceApplications/eoepca-ap-editor'
 nav:
   - Home: index.md
   - User Manual: user-manual/index.md
+  - Architectural Design: architectural-design/index.md
 
 extra_css:
     - css/extra.css
