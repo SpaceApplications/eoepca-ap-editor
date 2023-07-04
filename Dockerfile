@@ -7,7 +7,7 @@ COPY frontend ./
 RUN yarn run build
 
 # production stage
-FROM python:3.12-rc-slim as production-stage
+FROM python:3.12-rc-slim-buster as production-stage
 RUN apt-get -y update && apt-get -y install nginx supervisor curl
 # RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 COPY backend/ /app/backend/
